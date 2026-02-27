@@ -252,10 +252,15 @@
       filter: drop-shadow(0 0 8px rgba(255, 154, 77, 0.4));
     }
 
+    .pyramid-void {
+      fill: rgba(74, 23, 64, 0.62);
+      transition: d 450ms linear;
+    }
+
     .pyramid-cutline {
       fill: none;
       stroke: rgba(255, 248, 226, 0.78);
-      stroke-width: 1.35;
+      stroke-width: 1.7;
       stroke-dasharray: 2.2 3.2;
       opacity: 0.9;
     }
@@ -395,6 +400,7 @@
                 </linearGradient>
               </defs>
               <path class="pyramid-fill" id="pyramidFill" d=""></path>
+              <path class="pyramid-void" id="pyramidVoid" d=""></path>
               <path class="pyramid-cutline" id="pyramidCutline" d=""></path>
               <path class="pyramid-outline" d="M 50 6 L 92 92 L 8 92 Z"></path>
             </svg>
@@ -472,6 +478,7 @@
         nowStamp: document.getElementById("nowStamp"),
         percentValue: document.getElementById("percentValue"),
         pyramidFill: document.getElementById("pyramidFill"),
+        pyramidVoid: document.getElementById("pyramidVoid"),
         pyramidCutline: document.getElementById("pyramidCutline"),
         pyramidWrap: document.getElementById("leftPyramidWrap"),
         eventStream: document.getElementById("eventStream"),
@@ -577,7 +584,13 @@
         const halfBase = (rightBaseX - leftBaseX) / 2;
         const totalHeight = baseY - topY;
 
-        const cutY = topY + totalHeight * ratio;
+        const rawCutHeight = totalHeight * ratio;
+        const minimumVisibleCutHeight = 3.8;
+        const visibleCutHeight =
+          ratio <= 0 ? 0 : Math.max(rawCutHeight, minimumVisibleCutHeight);
+        const visibleRatio = Math.min(1, visibleCutHeight / totalHeight);
+
+        const cutY = topY + totalHeight * visibleRatio;
         const halfCut = halfBase * ((cutY - topY) / totalHeight);
         const leftCutX = apexX - halfCut;
         const rightCutX = apexX + halfCut;
@@ -590,8 +603,13 @@
         const cutlinePath =
           "M " + leftCutX.toFixed(3) + " " + cutY.toFixed(3) +
           " L " + rightCutX.toFixed(3) + " " + cutY.toFixed(3);
+        const voidPath =
+          "M " + apexX + " " + topY +
+          " L " + rightCutX.toFixed(3) + " " + cutY.toFixed(3) +
+          " L " + leftCutX.toFixed(3) + " " + cutY.toFixed(3) + " Z";
 
         setAttr(ui.pyramidFill, "pyramid-fill-path", "d", fillPath);
+        setAttr(ui.pyramidVoid, "pyramid-void-path", "d", voidPath);
         setAttr(ui.pyramidCutline, "pyramid-cutline-path", "d", cutlinePath);
         setAttr(ui.pyramidWrap, "pyramid-aria-valuenow", "aria-valuenow", percentLeft.toFixed(6));
       }
