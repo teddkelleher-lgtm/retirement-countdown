@@ -405,7 +405,7 @@
               <path class="pyramid-outline" d="M 50 6 L 92 92 L 8 92 Z"></path>
             </svg>
           </div>
-          <p class="pyramid-note">Top cutaway equals remaining career time.</p>
+          <p class="pyramid-note">Missing tip area equals remaining career time.</p>
         </div>
       </section>
 
@@ -584,13 +584,10 @@
         const halfBase = (rightBaseX - leftBaseX) / 2;
         const totalHeight = baseY - topY;
 
-        const rawCutHeight = totalHeight * ratio;
-        const minimumVisibleCutHeight = 3.8;
-        const visibleCutHeight =
-          ratio <= 0 ? 0 : Math.max(rawCutHeight, minimumVisibleCutHeight);
-        const visibleRatio = Math.min(1, visibleCutHeight / totalHeight);
-
-        const cutY = topY + totalHeight * visibleRatio;
+        // Similar triangles: removed_area/full_area = (removed_height/full_height)^2.
+        // We want removed_area ratio to match percentLeft ratio.
+        const cutHeightRatio = Math.sqrt(ratio);
+        const cutY = topY + totalHeight * cutHeightRatio;
         const halfCut = halfBase * ((cutY - topY) / totalHeight);
         const leftCutX = apexX - halfCut;
         const rightCutX = apexX + halfCut;
