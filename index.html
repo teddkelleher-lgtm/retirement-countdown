@@ -23,7 +23,6 @@
       --glass-edge: rgba(255, 206, 120, 0.4);
       --card-face: rgba(73, 25, 70, 0.66);
       --card-edge: rgba(255, 190, 119, 0.42);
-      --tetra-layer-gradient: linear-gradient(to top, #5B2F66 0%, #5B2F66 100%);
     }
 
     * {
@@ -254,77 +253,13 @@
     .tetra-scene {
       width: 100%;
       height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      perspective: 1080px;
-      perspective-origin: 50% 54%;
       overflow: hidden;
     }
 
-    .tetrahedron {
-      position: relative;
-      width: min(98%, 236px);
-      height: min(95%, 214px);
-      transform-style: preserve-3d;
-      transform: rotateX(-14deg) rotateY(0deg);
-      animation: tetraSpin 180s linear infinite;
-      --tetra-depth: 36px;
-    }
-
-    @keyframes tetraSpin {
-      from { transform: rotateX(-14deg) rotateY(0deg); }
-      to { transform: rotateX(-14deg) rotateY(360deg); }
-    }
-
-    .tetra-face {
-      position: absolute;
-      left: 50%;
-      top: 54%;
-      width: 86%;
-      aspect-ratio: 1 / 0.8660254;
-      transform-origin: 50% 100%;
-      clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-      backface-visibility: hidden;
-      pointer-events: none;
-      background-image: var(--tetra-layer-gradient);
-      background-size: 100% 100%;
-      background-repeat: no-repeat;
-    }
-
-    .tetra-face-front {
-      transform: translate(-50%, -50%) rotateY(0deg) translateZ(var(--tetra-depth));
-    }
-
-    .tetra-face-right {
-      transform: translate(-50%, -50%) rotateY(120deg) translateZ(var(--tetra-depth));
-      background-image:
-        var(--tetra-layer-gradient),
-        linear-gradient(150deg, rgba(255, 188, 132, 0.34), rgba(210, 86, 186, 0.22) 58%, rgba(98, 20, 131, 0.26));
-      opacity: 0.84;
-    }
-
-    .tetra-face-left {
-      transform: translate(-50%, -50%) rotateY(-120deg) translateZ(var(--tetra-depth));
-      background-image:
-        var(--tetra-layer-gradient),
-        linear-gradient(210deg, rgba(255, 207, 132, 0.32), rgba(182, 95, 226, 0.2) 54%, rgba(82, 18, 124, 0.24));
-      opacity: 0.8;
-    }
-
-    .tetra-face-bottom {
-      transform: translate(-50%, -50%) rotateX(90deg) translateZ(22px) scale(0.72);
-      background-image:
-        var(--tetra-layer-gradient),
-        linear-gradient(180deg, rgba(255, 168, 120, 0.18), rgba(126, 52, 170, 0.18));
-      opacity: 0.46;
-    }
-
-    .pyramid-svg {
+    .tetra-canvas {
       width: 100%;
       height: 100%;
       display: block;
-      overflow: hidden;
     }
 
     .pyramid-fill {
@@ -530,31 +465,7 @@
         <div class="percent-viz">
           <div class="pyramid-shell" role="progressbar" aria-label="Career time left in pyramid form" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="leftPyramidWrap">
             <div class="tetra-scene">
-              <div class="tetrahedron" aria-hidden="true">
-                <div class="tetra-face tetra-face-front">
-                  <svg class="pyramid-svg" viewBox="0 15 100 82" preserveAspectRatio="xMidYMid meet">
-                    <defs>
-                      <clipPath id="pyramidFillClip">
-                        <path id="pyramidClipPath" d=""></path>
-                      </clipPath>
-                      <linearGradient id="futureHazeGradient" x1="50%" y1="0%" x2="50%" y2="100%">
-                        <stop offset="0%" stop-color="#FFF9EE" stop-opacity="0.35"></stop>
-                        <stop offset="45%" stop-color="#FFD6F4" stop-opacity="0.18"></stop>
-                        <stop offset="100%" stop-color="#FFF9EE" stop-opacity="0.03"></stop>
-                      </linearGradient>
-                      <filter id="futureHazeFilter" x="-28%" y="-28%" width="156%" height="156%">
-                        <feGaussianBlur stdDeviation="1.1"></feGaussianBlur>
-                      </filter>
-                    </defs>
-                    <path class="pyramid-fill" id="pyramidFill" d=""></path>
-                    <g class="pyramid-layers" id="pyramidLayers" clip-path="url(#pyramidFillClip)"></g>
-                    <path class="pyramid-void" id="pyramidVoid" d=""></path>
-                  </svg>
-                </div>
-                <div class="tetra-face tetra-face-right"></div>
-                <div class="tetra-face tetra-face-left"></div>
-                <div class="tetra-face tetra-face-bottom"></div>
-              </div>
+              <canvas class="tetra-canvas" id="tetraCanvas" aria-hidden="true"></canvas>
             </div>
           </div>
         </div>
@@ -1005,21 +916,22 @@
       const WORK_END_DAY = 4;
       const INLINE_PYRAMID_DATA_ID = "pyramidLayerData";
       const PYRAMID_LAYER_CSV = "career_tetra_month_height_bottom_layers_with_weather.csv";
-      const PYRAMID_BASE_LEFT_X = 6;
-      const PYRAMID_BASE_RIGHT_X = 94;
-      const PYRAMID_BASE_Y = 95;
-      const PYRAMID_BASE_WIDTH = PYRAMID_BASE_RIGHT_X - PYRAMID_BASE_LEFT_X;
-      const PYRAMID_EQUILATERAL_HEIGHT = (Math.sqrt(3) / 2) * PYRAMID_BASE_WIDTH;
-      const PYRAMID = {
-        apexX: (PYRAMID_BASE_LEFT_X + PYRAMID_BASE_RIGHT_X) / 2,
-        topY: PYRAMID_BASE_Y - PYRAMID_EQUILATERAL_HEIGHT,
-        baseY: PYRAMID_BASE_Y,
-        leftBaseX: PYRAMID_BASE_LEFT_X,
-        rightBaseX: PYRAMID_BASE_RIGHT_X
-      };
-      const PYRAMID_TOTAL_HEIGHT = PYRAMID.baseY - PYRAMID.topY;
-      const PYRAMID_HALF_BASE = (PYRAMID.rightBaseX - PYRAMID.leftBaseX) / 2;
-      const SVG_NS = "http://www.w3.org/2000/svg";
+      const TETRA_ROTATION_SECONDS = 180;
+      const TETRA_PITCH = -0.2;
+      const TETRA_CAMERA = 7.2;
+      const TETRA_SCALE_FACTOR = 0.43;
+      const TETRA_MODEL_VERTICES = [
+        { x: 0, y: 1.225, z: 0 },
+        { x: -1, y: -0.408, z: -0.577 },
+        { x: 1, y: -0.408, z: -0.577 },
+        { x: 0, y: -0.408, z: 1.155 }
+      ];
+      const TETRA_FACES = [
+        { idx: [0, 1, 2], shade: 1.0, cut: true },
+        { idx: [0, 2, 3], shade: 0.9, cut: true },
+        { idx: [0, 3, 1], shade: 0.82, cut: true },
+        { idx: [1, 3, 2], shade: 0.72, cut: false }
+      ];
       const WORK_BLOCKS = [
         { startHour: 7, startMinute: 0, endHour: 12, endMinute: 0 },
         { startHour: 12, startMinute: 30, endHour: 17, endMinute: 30 }
@@ -1049,10 +961,7 @@
       const numberFmt = new Intl.NumberFormat();
       const ui = {
         percentValue: document.getElementById("percentValue"),
-        pyramidFill: document.getElementById("pyramidFill"),
-        pyramidLayers: document.getElementById("pyramidLayers"),
-        pyramidClipPath: document.getElementById("pyramidClipPath"),
-        pyramidVoid: document.getElementById("pyramidVoid"),
+        tetraCanvas: document.getElementById("tetraCanvas"),
         pyramidWrap: document.getElementById("leftPyramidWrap"),
         helpBtn: document.getElementById("helpBtn"),
         helpTip: document.getElementById("footnoteTip"),
@@ -1082,6 +991,11 @@
 
       let previousValues = null;
       let retirementCelebrated = false;
+      let tetraRows = [];
+      let tetraCutRatio = 0;
+      const tetraCtx = ui.tetraCanvas ? ui.tetraCanvas.getContext("2d") : null;
+      let tetraDpr = 1;
+      let tetraRaf = 0;
 
       function buildMemorableThresholds(maxValue, options) {
         const min = options.min ?? 1;
@@ -1291,69 +1205,206 @@
         return rows;
       }
 
-      function yFromBottomPct(heightPctFromBottom) {
-        const pct = clamp(heightPctFromBottom, 0, 100);
-        return PYRAMID.baseY - (pct / 100) * PYRAMID_TOTAL_HEIGHT;
+      function hexToRgb(hex) {
+        const match = /^#([0-9a-fA-F]{6})$/.exec(hex || "");
+        if (!match) {
+          return { r: 91, g: 47, b: 102 };
+        }
+        const n = Number.parseInt(match[1], 16);
+        return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
       }
 
-      function xBoundsAtY(y) {
-        const ratioFromTop = clamp((y - PYRAMID.topY) / PYRAMID_TOTAL_HEIGHT, 0, 1);
-        const halfWidth = PYRAMID_HALF_BASE * ratioFromTop;
-        return {
-          left: PYRAMID.apexX - halfWidth,
-          right: PYRAMID.apexX + halfWidth
-        };
-      }
-
-      function layerBandPath(startPct, endPct) {
-        const yBottom = yFromBottomPct(startPct);
-        const yTop = yFromBottomPct(endPct);
-        const bottom = xBoundsAtY(yBottom);
-        const top = xBoundsAtY(yTop);
-
+      function shadeHexColor(hex, shade) {
+        const rgb = hexToRgb(hex);
+        const s = clamp(shade, 0.1, 1.5);
         return (
-          "M " + bottom.left.toFixed(3) + " " + yBottom.toFixed(3) +
-          " L " + bottom.right.toFixed(3) + " " + yBottom.toFixed(3) +
-          " L " + top.right.toFixed(3) + " " + yTop.toFixed(3) +
-          " L " + top.left.toFixed(3) + " " + yTop.toFixed(3) + " Z"
+          "rgb(" +
+          Math.round(clamp(rgb.r * s, 0, 255)) + "," +
+          Math.round(clamp(rgb.g * s, 0, 255)) + "," +
+          Math.round(clamp(rgb.b * s, 0, 255)) +
+          ")"
         );
       }
 
-      function setTetraLayerGradient(rows) {
-        if (!rows.length) {
-          document.documentElement.style.setProperty("--tetra-layer-gradient", "linear-gradient(to top, #5B2F66 0%, #5B2F66 100%)");
-          return;
-        }
-
-        const stops = [];
-        for (const row of rows) {
-          const start = clamp(row.startPct, 0, 100).toFixed(3);
-          const end = clamp(row.endPct, 0, 100).toFixed(3);
-          stops.push(row.color + " " + start + "% " + end + "%");
-        }
-        document.documentElement.style.setProperty("--tetra-layer-gradient", "linear-gradient(to top, " + stops.join(", ") + ")");
+      function lerpPoint(a, b, t) {
+        return {
+          x: a.x + (b.x - a.x) * t,
+          y: a.y + (b.y - a.y) * t
+        };
       }
 
-      function renderPyramidLayers(rows) {
-        if (!ui.pyramidLayers) {
+      function subtract3(a, b) {
+        return { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z };
+      }
+
+      function cross3(a, b) {
+        return {
+          x: a.y * b.z - a.z * b.y,
+          y: a.z * b.x - a.x * b.z,
+          z: a.x * b.y - a.y * b.x
+        };
+      }
+
+      function dot3(a, b) {
+        return a.x * b.x + a.y * b.y + a.z * b.z;
+      }
+
+      function rotateVertex(v, yaw, pitch) {
+        const cosY = Math.cos(yaw);
+        const sinY = Math.sin(yaw);
+        const x1 = v.x * cosY + v.z * sinY;
+        const z1 = -v.x * sinY + v.z * cosY;
+        const y1 = v.y;
+
+        const cosX = Math.cos(pitch);
+        const sinX = Math.sin(pitch);
+        const y2 = y1 * cosX - z1 * sinX;
+        const z2 = y1 * sinX + z1 * cosX;
+
+        return { x: x1, y: y2, z: z2 };
+      }
+
+      function projectVertex(v, width, height, scale, camera) {
+        const depth = Math.max(0.2, camera - v.z);
+        const perspective = camera / depth;
+        return {
+          x: width * 0.5 + v.x * scale * perspective,
+          y: height * 0.58 - v.y * scale * perspective,
+          z: v.z
+        };
+      }
+
+      function drawFaceLayers(ctx, a, b, c, rows, cutRatio, shade) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.lineTo(c.x, c.y);
+        ctx.closePath();
+        ctx.clip();
+
+        for (let i = 0; i < rows.length; i += 1) {
+          const row = rows[i];
+          const topT = Math.max(1 - row.endPct / 100, cutRatio);
+          const bottomT = Math.max(1 - row.startPct / 100, cutRatio);
+          if (bottomT <= topT) {
+            continue;
+          }
+
+          const p1 = lerpPoint(a, b, topT);
+          const p2 = lerpPoint(a, c, topT);
+          const p3 = lerpPoint(a, c, bottomT);
+          const p4 = lerpPoint(a, b, bottomT);
+
+          ctx.fillStyle = shadeHexColor(row.color, shade);
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.lineTo(p3.x, p3.y);
+          ctx.lineTo(p4.x, p4.y);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        if (cutRatio > 0) {
+          const h1 = lerpPoint(a, b, cutRatio);
+          const h2 = lerpPoint(a, c, cutRatio);
+          const hazeGradient = ctx.createLinearGradient(a.x, a.y, (h1.x + h2.x) * 0.5, (h1.y + h2.y) * 0.5);
+          hazeGradient.addColorStop(0, "rgba(255, 249, 238, 0.42)");
+          hazeGradient.addColorStop(0.52, "rgba(255, 214, 244, 0.2)");
+          hazeGradient.addColorStop(1, "rgba(255, 249, 238, 0.04)");
+          ctx.fillStyle = hazeGradient;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(h1.x, h1.y);
+          ctx.lineTo(h2.x, h2.y);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        ctx.restore();
+      }
+
+      function drawTetrahedron(nowMs) {
+        if (!tetraCtx || !ui.tetraCanvas) {
           return;
         }
 
-        const frag = document.createDocumentFragment();
-        for (const row of rows) {
-          const band = document.createElementNS(SVG_NS, "path");
-          band.setAttribute("class", "pyramid-layer");
-          band.setAttribute("d", layerBandPath(row.startPct, row.endPct));
-          band.setAttribute("fill", row.color);
-          if (row.monthLabel) {
-            band.setAttribute("data-month", row.monthLabel);
-          }
-          frag.appendChild(band);
+        const width = ui.tetraCanvas.width / tetraDpr;
+        const height = ui.tetraCanvas.height / tetraDpr;
+        tetraCtx.clearRect(0, 0, width, height);
+        if (!tetraRows.length || width <= 2 || height <= 2) {
+          return;
         }
 
-        ui.pyramidLayers.replaceChildren(frag);
-        setAttr(ui.pyramidFill, "pyramid-fill-opacity", "opacity", rows.length ? "0" : "0.96");
-        setTetraLayerGradient(rows);
+        const yaw = ((nowMs / 1000) / TETRA_ROTATION_SECONDS) * Math.PI * 2;
+        const rotatedVertices = TETRA_MODEL_VERTICES.map((vertex) => rotateVertex(vertex, yaw, TETRA_PITCH));
+        const scale = Math.min(width, height) * TETRA_SCALE_FACTOR;
+        const projectedVertices = rotatedVertices.map((vertex) => projectVertex(vertex, width, height, scale, TETRA_CAMERA));
+
+        const faces = TETRA_FACES.map((faceDef) => {
+          const rv0 = rotatedVertices[faceDef.idx[0]];
+          const rv1 = rotatedVertices[faceDef.idx[1]];
+          const rv2 = rotatedVertices[faceDef.idx[2]];
+          const a = projectedVertices[faceDef.idx[0]];
+          const b = projectedVertices[faceDef.idx[1]];
+          const c = projectedVertices[faceDef.idx[2]];
+          const centroid = {
+            x: (rv0.x + rv1.x + rv2.x) / 3,
+            y: (rv0.y + rv1.y + rv2.y) / 3,
+            z: (rv0.z + rv1.z + rv2.z) / 3
+          };
+
+          let normal = cross3(subtract3(rv1, rv0), subtract3(rv2, rv0));
+          if (dot3(normal, centroid) < 0) {
+            normal = { x: -normal.x, y: -normal.y, z: -normal.z };
+          }
+
+          const viewDir = { x: -centroid.x, y: -centroid.y, z: TETRA_CAMERA - centroid.z };
+          const visible = dot3(normal, viewDir) > 0;
+
+          return {
+            points: [a, b, c],
+            depth: centroid.z,
+            visible,
+            shade: faceDef.shade,
+            cut: faceDef.cut
+          };
+        }).filter((face) => face.visible).sort((left, right) => left.depth - right.depth);
+
+        for (const face of faces) {
+          const [a, b, c] = face.points;
+          const area2 = (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+          if (Math.abs(area2) < 0.2) {
+            continue;
+          }
+          drawFaceLayers(tetraCtx, a, b, c, tetraRows, face.cut ? tetraCutRatio : 0, face.shade);
+        }
+      }
+
+      function tetraLoop(nowMs) {
+        drawTetrahedron(nowMs);
+        tetraRaf = requestAnimationFrame(tetraLoop);
+      }
+
+      function resizeTetraCanvas() {
+        if (!ui.tetraCanvas || !tetraCtx) {
+          return;
+        }
+        const rect = ui.tetraCanvas.getBoundingClientRect();
+        const dpr = Math.min(2, window.devicePixelRatio || 1);
+        const width = Math.max(2, Math.round(rect.width * dpr));
+        const height = Math.max(2, Math.round(rect.height * dpr));
+        if (ui.tetraCanvas.width !== width || ui.tetraCanvas.height !== height || tetraDpr !== dpr) {
+          ui.tetraCanvas.width = width;
+          ui.tetraCanvas.height = height;
+          tetraDpr = dpr;
+          tetraCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+      }
+
+      function setTetraRows(rows) {
+        tetraRows = rows.slice();
       }
 
       async function loadPyramidLayers() {
@@ -1361,7 +1412,7 @@
         if (inlineDataNode) {
           const inlineRows = parseCompactPyramidLayerData(inlineDataNode.textContent || "");
           if (inlineRows.length) {
-            renderPyramidLayers(inlineRows);
+            setTetraRows(inlineRows);
             return;
           }
         }
@@ -1374,39 +1425,18 @@
           const csvText = await response.text();
           const rows = parsePyramidLayerCsv(csvText);
           if (rows.length) {
-            renderPyramidLayers(rows);
+            setTetraRows(rows);
+            return;
           }
+          setTetraRows([]);
         } catch (error) {
-          if (ui.pyramidLayers) {
-            ui.pyramidLayers.replaceChildren();
-          }
-          setAttr(ui.pyramidFill, "pyramid-fill-opacity", "opacity", "0.96");
-          setTetraLayerGradient([]);
+          setTetraRows([]);
         }
       }
 
       function setPyramidCutaway(percentLeft) {
         const ratio = clamp(percentLeft / 100, 0, 1);
-        // Tetrahedrons scale by the cube of linear size; cube-root maps volume ratio to height ratio.
-        const cutHeightRatio = Math.cbrt(ratio);
-        const cutY = PYRAMID.topY + PYRAMID_TOTAL_HEIGHT * cutHeightRatio;
-        const halfCut = PYRAMID_HALF_BASE * ((cutY - PYRAMID.topY) / PYRAMID_TOTAL_HEIGHT);
-        const leftCutX = PYRAMID.apexX - halfCut;
-        const rightCutX = PYRAMID.apexX + halfCut;
-
-        const fillPath =
-          "M " + leftCutX.toFixed(3) + " " + cutY.toFixed(3) +
-          " L " + rightCutX.toFixed(3) + " " + cutY.toFixed(3) +
-          " L " + PYRAMID.rightBaseX + " " + PYRAMID.baseY +
-          " L " + PYRAMID.leftBaseX + " " + PYRAMID.baseY + " Z";
-        const voidPath =
-          "M " + PYRAMID.apexX + " " + PYRAMID.topY +
-          " L " + rightCutX.toFixed(3) + " " + cutY.toFixed(3) +
-          " L " + leftCutX.toFixed(3) + " " + cutY.toFixed(3) + " Z";
-
-        setAttr(ui.pyramidFill, "pyramid-fill-path", "d", fillPath);
-        setAttr(ui.pyramidClipPath, "pyramid-clip-path", "d", fillPath);
-        setAttr(ui.pyramidVoid, "pyramid-void-path", "d", voidPath);
+        tetraCutRatio = Math.cbrt(ratio);
         setAttr(ui.pyramidWrap, "pyramid-aria-valuenow", "aria-valuenow", percentLeft.toFixed(6));
       }
 
@@ -1599,11 +1629,16 @@
         window.setTimeout(startLoop, SAMPLE_MS);
       }
 
-      window.addEventListener("resize", resizeCanvas);
+      window.addEventListener("resize", () => {
+        resizeCanvas();
+        resizeTetraCanvas();
+      });
       resizeCanvas();
+      resizeTetraCanvas();
       loadPyramidLayers();
       render();
       startLoop();
+      tetraRaf = requestAnimationFrame(tetraLoop);
 
       function closeHelpTip() {
         if (!ui.helpTip || ui.helpTip.hidden) {
