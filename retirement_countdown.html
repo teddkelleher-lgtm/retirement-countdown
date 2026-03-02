@@ -422,7 +422,7 @@
 
     @media (max-width: 430px) {
       .percent-box {
-        min-height: clamp(220px, 34svh, 300px);
+        min-height: clamp(260px, 40svh, 380px);
         padding: 8px 9px 9px;
       }
 
@@ -431,10 +431,10 @@
       }
 
       .pyramid-shell {
-        width: min(90vw, 360px);
+        width: min(92vw, 390px);
         min-width: 0;
-        aspect-ratio: 1.52 / 1;
-        max-height: min(31svh, 248px);
+        aspect-ratio: 1.32 / 1;
+        max-height: min(38svh, 320px);
       }
     }
 
@@ -941,9 +941,9 @@
       const TETRA_ROTATION_SECONDS = 180;
       const TETRA_PITCH = 0.06;
       const TETRA_FOV_DEG = 34;
-      const TETRA_SCALE_FACTOR = 1.15;
+      const TETRA_SCALE_FACTOR = 1.32;
       const TETRA_CENTER_Y = 0.5;
-      const TETRA_TARGET_CENTER_Y = 0.52;
+      const TETRA_TARGET_CENTER_Y = 0.54;
       const TETRA_YAW_OFFSET = Math.PI / 4;
       const TETRA_CAMERA_POS = { x: 0, y: 0.92, z: 5.8 };
       const TETRA_LOOK_AT = { x: 0, y: 0.02, z: 0 };
@@ -1344,9 +1344,7 @@
               face.edgeB2,
               remainTop,
               remainBottom,
-              shadeHexColorRgba(row.color, face.shade * 1.35, 0.32),
-              shadeHexColorRgba(row.color, face.shade * 1.5, 0.38),
-              0.9
+              shadeHexColorRgba(row.color, face.shade * 1.42, 0.18)
             );
           }
         }
@@ -1360,16 +1358,19 @@
             (h1.x + h2.x) * 0.5,
             (h1.y + h2.y) * 0.5
           );
-          mist.addColorStop(0, "rgba(238, 244, 255, 0.44)");
-          mist.addColorStop(0.55, "rgba(228, 205, 255, 0.2)");
-          mist.addColorStop(1, "rgba(218, 169, 255, 0.05)");
+          mist.addColorStop(0, "rgba(242, 248, 255, 0.6)");
+          mist.addColorStop(0.5, "rgba(234, 214, 255, 0.28)");
+          mist.addColorStop(1, "rgba(222, 184, 255, 0.09)");
           ctx.fillStyle = mist;
+          ctx.save();
+          ctx.filter = "blur(1.6px)";
           ctx.beginPath();
           ctx.moveTo(face.apex2.x, face.apex2.y);
           ctx.lineTo(h1.x, h1.y);
           ctx.lineTo(h2.x, h2.y);
           ctx.closePath();
           ctx.fill();
+          ctx.restore();
         }
       }
 
@@ -1398,11 +1399,13 @@
           capProjected[2].x,
           capProjected[2].y
         );
-        glow.addColorStop(0, "rgba(244, 250, 255, 0.48)");
-        glow.addColorStop(0.5, "rgba(228, 194, 255, 0.24)");
-        glow.addColorStop(1, "rgba(244, 250, 255, 0.45)");
+        glow.addColorStop(0, "rgba(246, 252, 255, 0.52)");
+        glow.addColorStop(0.45, "rgba(234, 212, 255, 0.22)");
+        glow.addColorStop(1, "rgba(246, 252, 255, 0.5)");
 
         ctx.fillStyle = glow;
+        ctx.save();
+        ctx.filter = "blur(2.2px)";
         ctx.beginPath();
         ctx.moveTo(capProjected[0].x, capProjected[0].y);
         for (let i = 1; i < capProjected.length; i += 1) {
@@ -1410,10 +1413,7 @@
         }
         ctx.closePath();
         ctx.fill();
-
-        ctx.strokeStyle = "rgba(233, 218, 255, 0.34)";
-        ctx.lineWidth = 0.9;
-        ctx.stroke();
+        ctx.restore();
       }
 
       function drawTetrahedron(nowMs) {
