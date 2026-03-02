@@ -165,6 +165,29 @@
       animation: titleFlicker 5s ease-in-out infinite;
     }
 
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .version-tag {
+      margin: 0;
+      padding: 2px 10px 3px;
+      border-radius: 999px;
+      font-family: "Orbitron", "Sora", sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #fff9ed;
+      border: 1px solid rgba(255, 239, 196, 0.8);
+      background: linear-gradient(90deg, rgba(255, 157, 77, 0.85), rgba(255, 94, 182, 0.8));
+      box-shadow: 0 0 14px rgba(255, 160, 82, 0.35);
+    }
+
     @keyframes titleFlicker {
       0%, 18%, 100% { opacity: 1; filter: drop-shadow(0 0 6px rgba(255, 209, 102, 0.36)); }
       20% { opacity: 0.93; }
@@ -380,7 +403,10 @@
   <canvas id="fxCanvas" aria-hidden="true"></canvas>
   <main class="shell">
     <section class="panel">
-      <h1 class="title">Countdown to Next</h1>
+      <div class="title-row">
+        <h1 class="title">Countdown to Next</h1>
+        <p class="version-tag">v1</p>
+      </div>
       <p class="subtitle">Career span: Jan 5, 1994 8:00 AM to Jun 25, 2026 5:30 PM</p>
       <p class="clock">System time: <span id="nowStamp">--</span></p>
 
