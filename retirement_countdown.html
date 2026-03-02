@@ -1885,8 +1885,13 @@
             continue;
           }
 
-          const pA = lerpPoint(face.apex2, face.edgeA2, markerT);
-          const pB = lerpPoint(face.apex2, face.edgeB2, markerT);
+          const pA3 = lerp3(face.apex3, face.edgeA3, markerT);
+          const pB3 = lerp3(face.apex3, face.edgeB3, markerT);
+          const pA = projectWorldVertex(pA3, face.width, face.height, face.focalLength);
+          const pB = projectWorldVertex(pB3, face.width, face.height, face.focalLength);
+          if (!pA || !pB) {
+            continue;
+          }
           const isPast = markerT >= cap;
           const alpha = isPast ? 0.82 : 0.2;
           const radius = isPast ? 0.58 : 0.42;
@@ -1907,8 +1912,13 @@
         const cap = clamp(capHeightRatio, 0, 1);
 
         if (cap < 1 - epsilon) {
-          const topA = lerpPoint(face.apex2, face.edgeA2, cap);
-          const topB = lerpPoint(face.apex2, face.edgeB2, cap);
+          const topA3 = lerp3(face.apex3, face.edgeA3, cap);
+          const topB3 = lerp3(face.apex3, face.edgeB3, cap);
+          const topA = projectWorldVertex(topA3, face.width, face.height, face.focalLength);
+          const topB = projectWorldVertex(topB3, face.width, face.height, face.focalLength);
+          if (!topA || !topB) {
+            return;
+          }
           const baseMid = {
             x: (face.edgeA2.x + face.edgeB2.x) * 0.5,
             y: (face.edgeA2.y + face.edgeB2.y) * 0.5
@@ -1949,8 +1959,14 @@
         }
 
         if (cap > epsilon && cap < 1 - epsilon) {
-          const h1 = lerpPoint(face.apex2, face.edgeA2, cap);
-          const h2 = lerpPoint(face.apex2, face.edgeB2, cap);
+          const h13 = lerp3(face.apex3, face.edgeA3, cap);
+          const h23 = lerp3(face.apex3, face.edgeB3, cap);
+          const h1 = projectWorldVertex(h13, face.width, face.height, face.focalLength);
+          const h2 = projectWorldVertex(h23, face.width, face.height, face.focalLength);
+          if (!h1 || !h2) {
+            drawCornerMonthDots(ctx, face, cap);
+            return;
+          }
           const midX = (h1.x + h2.x + face.apex2.x) / 3;
           const midY = (h1.y + h2.y + face.apex2.y) / 3;
           const radius = Math.hypot(midX - face.apex2.x, midY - face.apex2.y) * 2.35;
@@ -2018,6 +2034,10 @@
           const rightAngle = Math.atan2(right.y - centerY, right.x - centerX);
           return leftAngle - rightAngle;
         });
+        const capRgb = sampleTetraColor(capHeightRatio);
+        const capBright = mixRgb(capRgb, { r: 255, g: 255, b: 255 }, 0.24);
+        const capDark = mixRgb(capRgb, { r: 18, g: 10, b: 32 }, 0.14);
+        const edgeTint = mixRgb(capRgb, { r: 255, g: 255, b: 255 }, 0.55);
 
         const planeFill = ctx.createLinearGradient(
           orderedCap[0].x,
@@ -2025,9 +2045,9 @@
           orderedCap[2].x,
           orderedCap[2].y
         );
-        planeFill.addColorStop(0, "rgba(254, 255, 255, 0.6)");
-        planeFill.addColorStop(0.55, "rgba(242, 236, 255, 0.4)");
-        planeFill.addColorStop(1, "rgba(229, 216, 255, 0.28)");
+        planeFill.addColorStop(0, "rgba(" + capBright.r + "," + capBright.g + "," + capBright.b + ",0.86)");
+        planeFill.addColorStop(0.55, "rgba(" + capRgb.r + "," + capRgb.g + "," + capRgb.b + ",0.74)");
+        planeFill.addColorStop(1, "rgba(" + capDark.r + "," + capDark.g + "," + capDark.b + ",0.72)");
 
         ctx.save();
         ctx.lineJoin = "round";
@@ -2039,17 +2059,9 @@
         ctx.closePath();
         ctx.fillStyle = planeFill;
         ctx.fill();
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.96)";
-        ctx.lineWidth = 1.35;
+        ctx.strokeStyle = "rgba(" + edgeTint.r + "," + edgeTint.g + "," + edgeTint.b + ",0.92)";
+        ctx.lineWidth = 0.92;
         ctx.stroke();
-
-        for (let i = 0; i < orderedCap.length; i += 1) {
-          const vertex = orderedCap[i];
-          ctx.beginPath();
-          ctx.fillStyle = "rgba(255, 255, 255, 0.98)";
-          ctx.arc(vertex.x, vertex.y, 1.15, 0, Math.PI * 2);
-          ctx.fill();
-        }
         ctx.restore();
 
         let radius = 0;
@@ -2065,9 +2077,9 @@
           centerY,
           radius * 0.98
         );
-        glow.addColorStop(0, "rgba(246, 252, 255, 0.15)");
-        glow.addColorStop(0.55, "rgba(234, 212, 255, 0.07)");
-        glow.addColorStop(1, "rgba(246, 252, 255, 0)");
+        glow.addColorStop(0, "rgba(" + capBright.r + "," + capBright.g + "," + capBright.b + ",0.16)");
+        glow.addColorStop(0.55, "rgba(" + capRgb.r + "," + capRgb.g + "," + capRgb.b + ",0.08)");
+        glow.addColorStop(1, "rgba(" + capRgb.r + "," + capRgb.g + "," + capRgb.b + ",0)");
 
         ctx.save();
         ctx.globalCompositeOperation = "screen";
@@ -2140,8 +2152,14 @@
             apex2: p0,
             edgeA2: p1,
             edgeB2: p2,
+            apex3: w0,
+            edgeA3: w1,
+            edgeB3: w2,
             shade: faceDef.shade,
-            depth: (p0.z + p1.z + p2.z) / 3
+            depth: (p0.z + p1.z + p2.z) / 3,
+            width,
+            height,
+            focalLength
           };
         }).filter(Boolean).sort((left, right) => right.depth - left.depth);
 
