@@ -1343,21 +1343,21 @@
             (h1.x + h2.x) * 0.5,
             (h1.y + h2.y) * 0.5
           );
-          mist.addColorStop(0, "rgba(242, 248, 255, 0.12)");
-          mist.addColorStop(0.55, "rgba(234, 214, 255, 0.055)");
-          mist.addColorStop(1, "rgba(222, 184, 255, 0.012)");
+          mist.addColorStop(0, "rgba(242, 248, 255, 0.22)");
+          mist.addColorStop(0.55, "rgba(234, 214, 255, 0.12)");
+          mist.addColorStop(1, "rgba(222, 184, 255, 0.03)");
           ctx.fillStyle = mist;
           ctx.save();
           ctx.globalCompositeOperation = "screen";
-          ctx.filter = "blur(6px)";
+          ctx.filter = "blur(4.8px)";
           ctx.beginPath();
           ctx.moveTo(face.apex2.x, face.apex2.y);
           ctx.lineTo(h1.x, h1.y);
           ctx.lineTo(h2.x, h2.y);
           ctx.closePath();
           ctx.fill();
-          ctx.filter = "blur(14px)";
-          ctx.fillStyle = "rgba(238, 224, 255, 0.025)";
+          ctx.filter = "blur(9px)";
+          ctx.fillStyle = "rgba(238, 224, 255, 0.09)";
           ctx.fill();
           ctx.restore();
         }
@@ -1397,13 +1397,13 @@
           centerY,
           radius * 1.12
         );
-        glow.addColorStop(0, "rgba(246, 252, 255, 0.16)");
-        glow.addColorStop(0.55, "rgba(234, 212, 255, 0.06)");
+        glow.addColorStop(0, "rgba(246, 252, 255, 0.28)");
+        glow.addColorStop(0.55, "rgba(234, 212, 255, 0.14)");
         glow.addColorStop(1, "rgba(246, 252, 255, 0)");
 
         ctx.save();
         ctx.globalCompositeOperation = "screen";
-        ctx.filter = "blur(14px)";
+        ctx.filter = "blur(10px)";
         ctx.fillStyle = glow;
         ctx.beginPath();
         ctx.arc(centerX, centerY, radius * 1.24, 0, Math.PI * 2);
