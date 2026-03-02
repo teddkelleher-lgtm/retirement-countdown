@@ -917,24 +917,24 @@
       const INLINE_PYRAMID_DATA_ID = "pyramidLayerData";
       const PYRAMID_LAYER_CSV = "career_tetra_month_height_bottom_layers_with_weather.csv";
       const TETRA_ROTATION_SECONDS = 180;
-      const TETRA_PITCH = -0.52;
-      const TETRA_CAMERA = 8.4;
-      const TETRA_SCALE_FACTOR = 0.46;
+      const TETRA_PITCH = -0.42;
+      const TETRA_CAMERA = 9.0;
+      const TETRA_SCALE_FACTOR = 0.49;
       // Egypt-style square pyramid: 4 triangular sides + square base (2 triangles).
       const TETRA_MODEL_VERTICES = [
-        { x: 0, y: 1.35, z: 0 },      // apex
-        { x: -1, y: -0.45, z: -1 },   // base back-left
-        { x: 1, y: -0.45, z: -1 },    // base back-right
-        { x: 1, y: -0.45, z: 1 },     // base front-right
-        { x: -1, y: -0.45, z: 1 }     // base front-left
+        { x: 0, y: 1.0, z: 0 },       // apex
+        { x: -1, y: -0.26, z: -1 },   // base back-left
+        { x: 1, y: -0.26, z: -1 },    // base back-right
+        { x: 1, y: -0.26, z: 1 },     // base front-right
+        { x: -1, y: -0.26, z: 1 }     // base front-left
       ];
       const TETRA_FACES = [
         { idx: [0, 1, 2], shade: 1.0, cut: true, isBase: false },
         { idx: [0, 2, 3], shade: 0.92, cut: true, isBase: false },
         { idx: [0, 3, 4], shade: 0.84, cut: true, isBase: false },
         { idx: [0, 4, 1], shade: 0.88, cut: true, isBase: false },
-        { idx: [1, 4, 3], shade: 0.72, cut: false, isBase: true },
-        { idx: [1, 3, 2], shade: 0.72, cut: false, isBase: true }
+        { idx: [1, 2, 3], shade: 0.72, cut: false, isBase: true },
+        { idx: [1, 3, 4], shade: 0.72, cut: false, isBase: true }
       ];
       const WORK_BLOCKS = [
         { startHour: 7, startMinute: 0, endHour: 12, endMinute: 0 },
@@ -1359,13 +1359,9 @@
             z: (rv0.z + rv1.z + rv2.z) / 3
           };
 
-          let normal = cross3(subtract3(rv1, rv0), subtract3(rv2, rv0));
-          if (dot3(normal, centroid) < 0) {
-            normal = { x: -normal.x, y: -normal.y, z: -normal.z };
-          }
-
-          const viewDir = { x: -centroid.x, y: -centroid.y, z: TETRA_CAMERA - centroid.z };
-          const visible = dot3(normal, viewDir) > 0;
+          const normal = cross3(subtract3(rv1, rv0), subtract3(rv2, rv0));
+          const toCamera = { x: -rv0.x, y: -rv0.y, z: TETRA_CAMERA - rv0.z };
+          const visible = dot3(normal, toCamera) > 0;
 
           return {
             points: [a, b, c],
