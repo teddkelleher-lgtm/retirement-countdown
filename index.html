@@ -420,6 +420,24 @@
       }
     }
 
+    @media (max-width: 430px) {
+      .percent-box {
+        min-height: clamp(220px, 34svh, 300px);
+        padding: 8px 9px 9px;
+      }
+
+      .percent-viz {
+        margin-top: 4px;
+      }
+
+      .pyramid-shell {
+        width: min(90vw, 360px);
+        min-width: 0;
+        aspect-ratio: 1.52 / 1;
+        max-height: min(31svh, 248px);
+      }
+    }
+
     /* iPhone Safari full-bleed: content runs under browser chrome */
     @supports (-webkit-touch-callout: none) {
       .shell {
