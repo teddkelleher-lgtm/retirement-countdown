@@ -1156,6 +1156,8 @@
       let retirementCelebrated = false;
       let tetraRows = [];
       let tetraCutRatio = 0;
+      let tetraColorLookup = [];
+      let tetraMonthMarkerTs = [];
       const tetraCtx = ui.tetraCanvas ? ui.tetraCanvas.getContext("2d") : null;
       const moonCtx = ui.moonPhaseCanvas ? ui.moonPhaseCanvas.getContext("2d") : null;
       let tetraDpr = 1;
@@ -1662,7 +1664,10 @@
             monthLabel: "",
             startPct: clamp(startPct, 0, 100),
             endPct: clamp(endPct, 0, 100),
-            color: /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#5B2F66"
+            color: /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#5B2F66",
+            topT: clamp(1 - endPct / 100, 0, 1),
+            bottomT: clamp(1 - startPct / 100, 0, 1),
+            rgb: hexToRgb(/^#[0-9a-fA-F]{6}$/.test(color) ? color : "#5B2F66")
           });
         }
 
@@ -1689,6 +1694,91 @@
           clamp(alpha, 0, 1).toFixed(3) +
           ")"
         );
+      }
+
+      function findRowColorAtT(rows, t) {
+        const clampedT = clamp(t, 0, 1);
+        for (let i = 0; i < rows.length; i += 1) {
+          const row = rows[i];
+          const topT = Number.isFinite(row.topT) ? row.topT : clamp(1 - row.endPct / 100, 0, 1);
+          const bottomT = Number.isFinite(row.bottomT) ? row.bottomT : clamp(1 - row.startPct / 100, 0, 1);
+          if (clampedT >= topT && clampedT <= bottomT) {
+            return row.rgb || hexToRgb(row.color);
+          }
+        }
+        const fallback = rows.length ? rows[rows.length - 1] : null;
+        return fallback && fallback.rgb ? fallback.rgb : { r: 91, g: 47, b: 102 };
+      }
+
+      function buildTetraColorLookup(rows) {
+        const size = 512;
+        if (!rows.length) {
+          tetraColorLookup = [];
+          return;
+        }
+
+        const base = new Array(size);
+        for (let i = 0; i < size; i += 1) {
+          const t = i / (size - 1);
+          base[i] = findRowColorAtT(rows, t);
+        }
+
+        const blurRadius = 4;
+        const smoothed = new Array(size);
+        for (let i = 0; i < size; i += 1) {
+          let r = 0;
+          let g = 0;
+          let b = 0;
+          let wSum = 0;
+          for (let k = -blurRadius; k <= blurRadius; k += 1) {
+            const idx = clamp(i + k, 0, size - 1);
+            const weight = blurRadius + 1 - Math.abs(k);
+            r += base[idx].r * weight;
+            g += base[idx].g * weight;
+            b += base[idx].b * weight;
+            wSum += weight;
+          }
+          smoothed[i] = {
+            r: Math.round(r / wSum),
+            g: Math.round(g / wSum),
+            b: Math.round(b / wSum)
+          };
+        }
+        tetraColorLookup = smoothed;
+      }
+
+      function sampleTetraColor(t) {
+        if (!tetraColorLookup.length) {
+          return { r: 91, g: 47, b: 102 };
+        }
+        const scaled = clamp(t, 0, 1) * (tetraColorLookup.length - 1);
+        const leftIndex = Math.floor(scaled);
+        const rightIndex = Math.min(tetraColorLookup.length - 1, leftIndex + 1);
+        const frac = scaled - leftIndex;
+        return mixRgb(tetraColorLookup[leftIndex], tetraColorLookup[rightIndex], frac);
+      }
+
+      function buildMonthMarkerTs(rows) {
+        if (!rows.length) {
+          tetraMonthMarkerTs = [];
+          return;
+        }
+        const ts = [1];
+        for (let i = 0; i < rows.length; i += 1) {
+          const row = rows[i];
+          const markerT = Number.isFinite(row.topT) ? row.topT : clamp(1 - row.endPct / 100, 0, 1);
+          ts.push(clamp(markerT, 0, 1));
+        }
+        ts.sort((a, b) => b - a);
+        const unique = [];
+        const epsilon = 1e-4;
+        for (let i = 0; i < ts.length; i += 1) {
+          const value = ts[i];
+          if (!unique.length || Math.abs(unique[unique.length - 1] - value) > epsilon) {
+            unique.push(value);
+          }
+        }
+        tetraMonthMarkerTs = unique;
       }
 
       function lerpPoint(a, b, t) {
@@ -1783,81 +1873,131 @@
         };
       }
 
-      function drawLayerBandOnFace(ctx, apex, edgeA, edgeB, topT, bottomT, fillStyle, strokeStyle, lineWidth) {
-        const p1 = lerpPoint(apex, edgeA, topT);
-        const p2 = lerpPoint(apex, edgeB, topT);
-        const p3 = lerpPoint(apex, edgeB, bottomT);
-        const p4 = lerpPoint(apex, edgeA, bottomT);
+      function drawCornerMonthDots(ctx, face, capHeightRatio) {
+        if (!tetraMonthMarkerTs.length) {
+          return;
+        }
 
-        ctx.fillStyle = fillStyle;
-        ctx.beginPath();
-        ctx.moveTo(p1.x, p1.y);
-        ctx.lineTo(p2.x, p2.y);
-        ctx.lineTo(p3.x, p3.y);
-        ctx.lineTo(p4.x, p4.y);
-        ctx.closePath();
-        ctx.fill();
-        if (strokeStyle) {
-          ctx.strokeStyle = strokeStyle;
-          ctx.lineWidth = lineWidth || 0.8;
-          ctx.stroke();
+        const cap = clamp(capHeightRatio, 0, 1);
+        for (let i = 0; i < tetraMonthMarkerTs.length; i += 1) {
+          const markerT = tetraMonthMarkerTs[i];
+          if (markerT <= 0.006 || markerT >= 0.998) {
+            continue;
+          }
+
+          const pA = lerpPoint(face.apex2, face.edgeA2, markerT);
+          const pB = lerpPoint(face.apex2, face.edgeB2, markerT);
+          const isPast = markerT >= cap;
+          const alpha = isPast ? 0.86 : 0.24;
+          const radius = isPast ? 1.38 : 1.02;
+
+          ctx.beginPath();
+          ctx.fillStyle = "rgba(250, 252, 255, " + alpha.toFixed(3) + ")";
+          ctx.arc(pA.x, pA.y, radius, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.arc(pB.x, pB.y, radius, 0, Math.PI * 2);
+          ctx.fill();
         }
       }
 
       function drawFaceLayers(ctx, face, rows, capHeightRatio) {
         const epsilon = 1e-6;
         const cap = clamp(capHeightRatio, 0, 1);
-        for (let i = 0; i < rows.length; i += 1) {
-          const row = rows[i];
-          const layerTopT = clamp(1 - row.endPct / 100, 0, 1);
-          const layerBottomT = clamp(1 - row.startPct / 100, 0, 1);
-          if (layerBottomT - layerTopT <= epsilon) {
-            continue;
-          }
 
-          // Elapsed months (below the cut): solid but slightly muted.
-          const pastTop = Math.max(layerTopT, cap);
-          const pastBottom = layerBottomT;
-          if (pastBottom - pastTop > epsilon) {
-            drawLayerBandOnFace(
-              ctx,
-              face.apex2,
-              face.edgeA2,
-              face.edgeB2,
-              pastTop,
-              pastBottom,
-              shadeHexColorRgba(row.color, face.shade * 1.02, 0.9)
+        if (cap < 1 - epsilon) {
+          const topA = lerpPoint(face.apex2, face.edgeA2, cap);
+          const topB = lerpPoint(face.apex2, face.edgeB2, cap);
+          const baseMid = {
+            x: (face.edgeA2.x + face.edgeB2.x) * 0.5,
+            y: (face.edgeA2.y + face.edgeB2.y) * 0.5
+          };
+          const depthSpan = Math.max(epsilon, 1 - cap);
+          const shade = clamp(face.shade, 0.2, 1.5);
+          const gradient = ctx.createLinearGradient(face.apex2.x, face.apex2.y, baseMid.x, baseMid.y);
+          const stopCount = 28;
+
+          for (let step = 0; step <= stopCount; step += 1) {
+            const local = step / stopCount;
+            const t = cap + depthSpan * local;
+            const rgb = sampleTetraColor(t);
+            gradient.addColorStop(
+              local,
+              "rgba(" +
+                Math.round(clamp(rgb.r * shade, 0, 255)) + "," +
+                Math.round(clamp(rgb.g * shade, 0, 255)) + "," +
+                Math.round(clamp(rgb.b * shade, 0, 255)) + "," +
+                "0.915)"
             );
           }
+
+          ctx.beginPath();
+          ctx.moveTo(topA.x, topA.y);
+          ctx.lineTo(topB.x, topB.y);
+          ctx.lineTo(face.edgeB2.x, face.edgeB2.y);
+          ctx.lineTo(face.edgeA2.x, face.edgeA2.y);
+          ctx.closePath();
+          ctx.fillStyle = gradient;
+          ctx.fill();
+
+          const faceSheen = ctx.createLinearGradient(topA.x, topA.y, face.edgeB2.x, face.edgeB2.y);
+          faceSheen.addColorStop(0, "rgba(255, 255, 255, 0.045)");
+          faceSheen.addColorStop(1, "rgba(12, 3, 28, 0.07)");
+          ctx.fillStyle = faceSheen;
+          ctx.fill();
         }
 
         if (cap > epsilon && cap < 1 - epsilon) {
           const h1 = lerpPoint(face.apex2, face.edgeA2, cap);
           const h2 = lerpPoint(face.apex2, face.edgeB2, cap);
-          const mist = ctx.createLinearGradient(
-            face.apex2.x,
-            face.apex2.y,
-            (h1.x + h2.x) * 0.5,
-            (h1.y + h2.y) * 0.5
-          );
-          mist.addColorStop(0, "rgba(242, 248, 255, 0.12)");
-          mist.addColorStop(0.55, "rgba(234, 214, 255, 0.055)");
-          mist.addColorStop(1, "rgba(222, 184, 255, 0.012)");
-          ctx.fillStyle = mist;
+          const midX = (h1.x + h2.x + face.apex2.x) / 3;
+          const midY = (h1.y + h2.y + face.apex2.y) / 3;
+          const radius = Math.hypot(midX - face.apex2.x, midY - face.apex2.y) * 2.35;
+          const minX = Math.min(face.apex2.x, h1.x, h2.x);
+          const maxX = Math.max(face.apex2.x, h1.x, h2.x);
+          const minY = Math.min(face.apex2.y, h1.y, h2.y);
+          const maxY = Math.max(face.apex2.y, h1.y, h2.y);
+
           ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(face.apex2.x, face.apex2.y);
+          ctx.lineTo(h1.x, h1.y);
+          ctx.lineTo(h2.x, h2.y);
+          ctx.closePath();
+          ctx.clip();
           ctx.globalCompositeOperation = "screen";
-          ctx.filter = "blur(6px)";
+
+          const haze = ctx.createRadialGradient(
+            midX,
+            midY,
+            radius * 0.05,
+            midX,
+            midY,
+            radius
+          );
+          haze.addColorStop(0, "rgba(248, 252, 255, 0.08)");
+          haze.addColorStop(0.5, "rgba(238, 228, 255, 0.03)");
+          haze.addColorStop(1, "rgba(238, 228, 255, 0)");
+          ctx.filter = "blur(18px)";
+          ctx.fillStyle = haze;
+          ctx.fillRect(minX - 24, minY - 24, (maxX - minX) + 48, (maxY - minY) + 48);
+
+          const veil = ctx.createLinearGradient(face.apex2.x, face.apex2.y, (h1.x + h2.x) * 0.5, (h1.y + h2.y) * 0.5);
+          veil.addColorStop(0, "rgba(252, 255, 255, 0.026)");
+          veil.addColorStop(1, "rgba(252, 255, 255, 0)");
+          ctx.filter = "none";
+          ctx.fillStyle = veil;
           ctx.beginPath();
           ctx.moveTo(face.apex2.x, face.apex2.y);
           ctx.lineTo(h1.x, h1.y);
           ctx.lineTo(h2.x, h2.y);
           ctx.closePath();
           ctx.fill();
-          ctx.filter = "blur(14px)";
-          ctx.fillStyle = "rgba(238, 224, 255, 0.025)";
-          ctx.fill();
           ctx.restore();
         }
+
+        drawCornerMonthDots(ctx, face, cap);
       }
 
       function drawCapPlane(ctx, rotatedVertices, width, height, focalLength, capHeightRatio) {
@@ -1879,31 +2019,56 @@
           return;
         }
 
+        const planeFill = ctx.createLinearGradient(
+          capProjected[0].x,
+          capProjected[0].y,
+          capProjected[2].x,
+          capProjected[2].y
+        );
+        planeFill.addColorStop(0, "rgba(249, 253, 255, 0.34)");
+        planeFill.addColorStop(0.55, "rgba(236, 224, 255, 0.19)");
+        planeFill.addColorStop(1, "rgba(226, 207, 255, 0.12)");
+
+        ctx.save();
+        ctx.globalCompositeOperation = "screen";
+        ctx.beginPath();
+        ctx.moveTo(capProjected[0].x, capProjected[0].y);
+        for (let i = 1; i < capProjected.length; i += 1) {
+          ctx.lineTo(capProjected[i].x, capProjected[i].y);
+        }
+        ctx.closePath();
+        ctx.fillStyle = planeFill;
+        ctx.fill();
+        ctx.strokeStyle = "rgba(252, 255, 255, 0.56)";
+        ctx.lineWidth = 1.15;
+        ctx.stroke();
+        ctx.restore();
+
         const centerX = (capProjected[0].x + capProjected[1].x + capProjected[2].x + capProjected[3].x) * 0.25;
         const centerY = (capProjected[0].y + capProjected[1].y + capProjected[2].y + capProjected[3].y) * 0.25;
         let radius = 0;
         for (let i = 0; i < capProjected.length; i += 1) {
           radius += Math.hypot(capProjected[i].x - centerX, capProjected[i].y - centerY);
         }
-        radius = (radius / capProjected.length) * 1.25;
+        radius = (radius / capProjected.length) * 1.1;
         const glow = ctx.createRadialGradient(
           centerX,
           centerY,
           radius * 0.12,
           centerX,
           centerY,
-          radius * 1.12
+          radius * 1.08
         );
-        glow.addColorStop(0, "rgba(246, 252, 255, 0.16)");
-        glow.addColorStop(0.55, "rgba(234, 212, 255, 0.06)");
+        glow.addColorStop(0, "rgba(246, 252, 255, 0.1)");
+        glow.addColorStop(0.55, "rgba(234, 212, 255, 0.04)");
         glow.addColorStop(1, "rgba(246, 252, 255, 0)");
 
         ctx.save();
         ctx.globalCompositeOperation = "screen";
-        ctx.filter = "blur(14px)";
+        ctx.filter = "blur(10px)";
         ctx.fillStyle = glow;
         ctx.beginPath();
-        ctx.arc(centerX, centerY, radius * 1.24, 0, Math.PI * 2);
+        ctx.arc(centerX, centerY, radius * 1.1, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
       }
@@ -2006,6 +2171,8 @@
 
       function setTetraRows(rows) {
         tetraRows = rows.slice();
+        buildTetraColorLookup(tetraRows);
+        buildMonthMarkerTs(tetraRows);
       }
 
       function loadPyramidLayers() {
