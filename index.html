@@ -317,18 +317,22 @@
     }
 
     .footnote {
-      margin: 8px 2px 0;
-      font-size: 0.68rem;
+      margin: 3px 2px 0;
+      font-size: 0.66rem;
       color: #ffd0a8;
-      line-height: 1.2;
+      line-height: 1.16;
     }
 
     .event-stream {
-      margin-top: 8px;
+      margin-top: 3px;
       display: flex;
       flex-direction: column;
-      gap: 5px;
-      min-height: 16px;
+      gap: 4px;
+      min-height: 0;
+    }
+
+    .event-stream:empty {
+      display: none;
     }
 
     .event-chip {
