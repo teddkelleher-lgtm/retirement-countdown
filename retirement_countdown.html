@@ -195,7 +195,8 @@
 
     .percent-box {
       margin-top: 10px;
-      padding: 10px 10px 8px;
+      min-height: 250px;
+      padding: 12px 10px 12px;
       border-radius: 15px;
       background:
         linear-gradient(rgba(88, 30, 76, 0.6), rgba(66, 23, 61, 0.56)) padding-box,
@@ -228,15 +229,15 @@
     }
 
     .percent-viz {
-      margin-top: 7px;
+      margin-top: 10px;
       display: flex;
       justify-content: center;
     }
 
     .pyramid-shell {
-      width: 132px;
-      min-width: 132px;
-      aspect-ratio: 1 / 1.02;
+      width: 168px;
+      min-width: 168px;
+      aspect-ratio: 1 / 1.18;
       border-radius: 10px;
       padding: 2px;
       background: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.18), transparent 70%);
@@ -277,8 +278,8 @@
     }
 
     .pyramid-note {
-      margin: 6px 0 0;
-      font-size: 0.7rem;
+      margin: 9px 0 0;
+      font-size: 0.72rem;
       line-height: 1.2;
       color: #ffd8aa;
       letter-spacing: 0.01em;
@@ -328,13 +329,6 @@
       text-shadow: 0 0 12px rgba(255, 193, 110, 0.34);
     }
 
-    .footnote {
-      margin: 3px 2px 0;
-      font-size: 0.66rem;
-      color: #ffd0a8;
-      line-height: 1.16;
-    }
-
     .event-stream {
       margin-top: 3px;
       display: flex;
@@ -345,6 +339,46 @@
 
     .event-stream:empty {
       display: none;
+    }
+
+    .help-wrap {
+      position: absolute;
+      right: 10px;
+      bottom: calc(8px + env(safe-area-inset-bottom));
+      z-index: 8;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .help-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 236, 180, 0.65);
+      background: linear-gradient(135deg, rgba(255, 157, 77, 0.82), rgba(255, 94, 182, 0.8));
+      color: #fff8ea;
+      font-family: "Orbitron", "Sora", sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      line-height: 1;
+      cursor: pointer;
+      box-shadow: 0 0 14px rgba(255, 163, 92, 0.36);
+    }
+
+    .help-tip {
+      width: min(84vw, 320px);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 230, 160, 0.5);
+      background: rgba(47, 20, 58, 0.95);
+      color: #ffe5ba;
+      font-size: 0.69rem;
+      line-height: 1.24;
+      letter-spacing: 0.01em;
+      padding: 9px 10px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.38);
+      text-align: left;
     }
 
     .event-chip {
@@ -415,9 +449,6 @@
         margin-top: calc(4px + env(safe-area-inset-top));
       }
 
-      .footnote {
-        padding-bottom: calc(6px + env(safe-area-inset-bottom));
-      }
     }
   </style>
 </head>
@@ -486,7 +517,12 @@
       </section>
 
       <div class="event-stream" id="eventStream" aria-live="polite" aria-atomic="false"></div>
-      <p class="footnote">Counters sample continuously and repaint only when each displayed value changes at its current decimal precision. Workday hours use a Monday-Thursday week with a 7:00 AM-5:30 PM day and lunch from 12:00 PM-12:30 PM.</p>
+      <div class="help-wrap">
+        <button class="help-btn" id="helpBtn" type="button" aria-expanded="false" aria-controls="footnoteTip" aria-label="Show details">i</button>
+        <div class="help-tip" id="footnoteTip" role="tooltip" hidden>
+          Counters sample continuously and repaint only when each displayed value changes at its current decimal precision. Workday hours use a Monday-Thursday week with a 7:00 AM-5:30 PM day and lunch from 12:00 PM-12:30 PM.
+        </div>
+      </div>
     </section>
   </main>
 
@@ -533,6 +569,8 @@
         pyramidVoid: document.getElementById("pyramidVoid"),
         pyramidCutline: document.getElementById("pyramidCutline"),
         pyramidWrap: document.getElementById("leftPyramidWrap"),
+        helpBtn: document.getElementById("helpBtn"),
+        helpTip: document.getElementById("footnoteTip"),
         eventStream: document.getElementById("eventStream"),
         metrics: {}
       };
@@ -904,6 +942,46 @@
       resizeCanvas();
       render();
       startLoop();
+
+      function closeHelpTip() {
+        if (!ui.helpTip || ui.helpTip.hidden) {
+          return;
+        }
+        ui.helpTip.hidden = true;
+        ui.helpBtn.setAttribute("aria-expanded", "false");
+      }
+
+      function toggleHelpTip() {
+        if (!ui.helpTip) {
+          return;
+        }
+        const shouldOpen = ui.helpTip.hidden;
+        ui.helpTip.hidden = !shouldOpen;
+        ui.helpBtn.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
+      }
+
+      if (ui.helpBtn && ui.helpTip) {
+        ui.helpBtn.addEventListener("click", (event) => {
+          event.stopPropagation();
+          toggleHelpTip();
+        });
+
+        document.addEventListener("click", (event) => {
+          if (ui.helpTip.hidden) {
+            return;
+          }
+          const target = event.target;
+          if (target !== ui.helpBtn && !ui.helpTip.contains(target)) {
+            closeHelpTip();
+          }
+        });
+
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") {
+            closeHelpTip();
+          }
+        });
+      }
     })();
   </script>
 </body>
