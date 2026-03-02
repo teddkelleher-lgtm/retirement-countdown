@@ -917,9 +917,10 @@
       const INLINE_PYRAMID_DATA_ID = "pyramidLayerData";
       const PYRAMID_LAYER_CSV = "career_tetra_month_height_bottom_layers_with_weather.csv";
       const TETRA_ROTATION_SECONDS = 180;
-      const TETRA_PITCH = -0.42;
-      const TETRA_CAMERA = 9.0;
-      const TETRA_SCALE_FACTOR = 0.49;
+      const TETRA_PITCH = -0.28;
+      const TETRA_CAMERA = 10.5;
+      const TETRA_SCALE_FACTOR = 0.52;
+      const TETRA_YAW_OFFSET = Math.PI / 4;
       // Egypt-style square pyramid: 4 triangular sides + square base (2 triangles).
       const TETRA_MODEL_VERTICES = [
         { x: 0, y: 1.0, z: 0 },       // apex
@@ -1341,7 +1342,7 @@
           return;
         }
 
-        const yaw = ((nowMs / 1000) / TETRA_ROTATION_SECONDS) * Math.PI * 2;
+        const yaw = TETRA_YAW_OFFSET + ((nowMs / 1000) / TETRA_ROTATION_SECONDS) * Math.PI * 2;
         const rotatedVertices = TETRA_MODEL_VERTICES.map((vertex) => rotateVertex(vertex, yaw, TETRA_PITCH));
         const scale = Math.min(width, height) * TETRA_SCALE_FACTOR;
         const projectedVertices = rotatedVertices.map((vertex) => projectVertex(vertex, width, height, scale, TETRA_CAMERA));
@@ -1359,9 +1360,12 @@
             z: (rv0.z + rv1.z + rv2.z) / 3
           };
 
-          const normal = cross3(subtract3(rv1, rv0), subtract3(rv2, rv0));
-          const toCamera = { x: -rv0.x, y: -rv0.y, z: TETRA_CAMERA - rv0.z };
-          const visible = dot3(normal, toCamera) > 0;
+          let normal = cross3(subtract3(rv1, rv0), subtract3(rv2, rv0));
+          if (dot3(normal, centroid) < 0) {
+            normal = { x: -normal.x, y: -normal.y, z: -normal.z };
+          }
+          const toCamera = { x: -centroid.x, y: -centroid.y, z: TETRA_CAMERA - centroid.z };
+          const visible = dot3(normal, toCamera) > 0.02;
 
           return {
             points: [a, b, c],
