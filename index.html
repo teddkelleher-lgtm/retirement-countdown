@@ -2011,12 +2011,13 @@
         if (capProjected.some((point) => !point)) {
           return;
         }
-
-        const normal = cross3(subtract3(capWorld[1], capWorld[0]), subtract3(capWorld[2], capWorld[0]));
-        const centroid = average3(capWorld);
-        const toCamera = subtract3(TETRA_CAMERA_POS, centroid);
-        const facing = dot3(normal, toCamera) > 0 ? 1 : -1;
-        const orderedCap = facing > 0 ? capProjected : [capProjected[0], capProjected[3], capProjected[2], capProjected[1]];
+        const centerX = (capProjected[0].x + capProjected[1].x + capProjected[2].x + capProjected[3].x) * 0.25;
+        const centerY = (capProjected[0].y + capProjected[1].y + capProjected[2].y + capProjected[3].y) * 0.25;
+        const orderedCap = capProjected.slice().sort((left, right) => {
+          const leftAngle = Math.atan2(left.y - centerY, left.x - centerX);
+          const rightAngle = Math.atan2(right.y - centerY, right.x - centerX);
+          return leftAngle - rightAngle;
+        });
 
         const planeFill = ctx.createLinearGradient(
           orderedCap[0].x,
@@ -2029,6 +2030,7 @@
         planeFill.addColorStop(1, "rgba(229, 216, 255, 0.28)");
 
         ctx.save();
+        ctx.lineJoin = "round";
         ctx.beginPath();
         ctx.moveTo(orderedCap[0].x, orderedCap[0].y);
         for (let i = 1; i < orderedCap.length; i += 1) {
@@ -2038,11 +2040,7 @@
         ctx.fillStyle = planeFill;
         ctx.fill();
         ctx.strokeStyle = "rgba(255, 255, 255, 0.96)";
-        ctx.lineWidth = 1.65;
-        ctx.stroke();
-        ctx.strokeStyle = "rgba(255, 220, 255, 0.58)";
-        ctx.lineWidth = 3.4;
-        ctx.filter = "blur(1.3px)";
+        ctx.lineWidth = 1.35;
         ctx.stroke();
 
         for (let i = 0; i < orderedCap.length; i += 1) {
@@ -2054,8 +2052,6 @@
         }
         ctx.restore();
 
-        const centerX = (orderedCap[0].x + orderedCap[1].x + orderedCap[2].x + orderedCap[3].x) * 0.25;
-        const centerY = (orderedCap[0].y + orderedCap[1].y + orderedCap[2].y + orderedCap[3].y) * 0.25;
         let radius = 0;
         for (let i = 0; i < orderedCap.length; i += 1) {
           radius += Math.hypot(orderedCap[i].x - centerX, orderedCap[i].y - centerY);
