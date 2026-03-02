@@ -238,9 +238,10 @@
     }
 
     .pyramid-shell {
-      width: min(67vw, 236px);
-      min-width: 186px;
-      aspect-ratio: 1 / 1.06;
+      width: min(96%, 520px);
+      min-width: 220px;
+      max-width: 100%;
+      aspect-ratio: 1 / 1;
       border-radius: 10px;
       padding: 2px;
       background: transparent;
@@ -479,6 +480,10 @@
         <article class="metric">
           <p class="metric-name">Months Left</p>
           <p class="metric-value" id="months">--</p>
+        </article>
+        <article class="metric">
+          <p class="metric-name">Weeks Left</p>
+          <p class="metric-value" id="weeks">--</p>
         </article>
         <article class="metric">
           <p class="metric-name">Days Left</p>
@@ -915,29 +920,32 @@
       const WORK_START_DAY = 1;
       const WORK_END_DAY = 4;
       const INLINE_PYRAMID_DATA_ID = "pyramidLayerData";
-      const PYRAMID_LAYER_CSV = "career_tetra_month_height_bottom_layers_with_weather.csv";
       const TETRA_ROTATION_SECONDS = 180;
-      const TETRA_PITCH = -0.34;
-      const TETRA_CAMERA = 12.0;
-      const TETRA_SCALE_FACTOR = 0.56;
+      const TETRA_PITCH = 0.06;
+      const TETRA_FOV_DEG = 34;
+      const TETRA_SCALE_FACTOR = 1.15;
+      const TETRA_CENTER_Y = 0.5;
+      const TETRA_TARGET_CENTER_Y = 0.52;
       const TETRA_YAW_OFFSET = Math.PI / 4;
-      // Egypt-style square pyramid: 4 triangular sides + square base (2 triangles).
+      const TETRA_CAMERA_POS = { x: 0, y: 0.92, z: 5.8 };
+      const TETRA_LOOK_AT = { x: 0, y: 0.02, z: 0 };
+      // Square pyramid geometry: apex + 4 base corners.
       const TETRA_MODEL_VERTICES = [
-        { x: 0, y: 1.0, z: 0 },       // apex
-        { x: -1, y: -0.26, z: -1 },   // base back-left
-        { x: 1, y: -0.26, z: -1 },    // base back-right
-        { x: 1, y: -0.26, z: 1 },     // base front-right
-        { x: -1, y: -0.26, z: 1 }     // base front-left
+        { x: 0, y: 1.0, z: 0 },      // apex
+        { x: -1, y: -0.26, z: -1 },  // base back-left
+        { x: 1, y: -0.26, z: -1 },   // base back-right
+        { x: 1, y: -0.26, z: 1 },    // base front-right
+        { x: -1, y: -0.26, z: 1 }    // base front-left
       ];
-      const TETRA_FACES = [
-        // Side faces ordered with consistent outward winding.
-        { idx: [0, 2, 1], shade: 1.0, cut: true, isBase: false },  // back
-        { idx: [0, 3, 2], shade: 0.92, cut: true, isBase: false }, // right
-        { idx: [0, 4, 3], shade: 0.84, cut: true, isBase: false }, // front
-        { idx: [0, 1, 4], shade: 0.88, cut: true, isBase: false }, // left
-        { idx: [1, 2, 3], shade: 0.72, cut: false, isBase: true },
-        { idx: [1, 3, 4], shade: 0.72, cut: false, isBase: true }
+      const TETRA_SIDE_FACES = [
+        // Outward winding for reliable culling.
+        { idx: [0, 2, 1], shade: 1.0 },
+        { idx: [0, 3, 2], shade: 0.92 },
+        { idx: [0, 4, 3], shade: 0.84 },
+        { idx: [0, 1, 4], shade: 0.88 }
       ];
+      const TETRA_BASE_RING = [1, 2, 3, 4];
+      const TETRA_CAMERA_BASIS = buildCameraBasis(TETRA_CAMERA_POS, TETRA_LOOK_AT, { x: 0, y: 1, z: 0 });
       const WORK_BLOCKS = [
         { startHour: 7, startMinute: 0, endHour: 12, endMinute: 0 },
         { startHour: 12, startMinute: 30, endHour: 17, endMinute: 30 }
@@ -946,6 +954,7 @@
       const UNIT_MS = {
         year: 365.2425 * 24 * 60 * 60 * 1000,
         month: (365.2425 / 12) * 24 * 60 * 60 * 1000,
+        week: 7 * 24 * 60 * 60 * 1000,
         day: 24 * 60 * 60 * 1000,
         hour: 60 * 60 * 1000,
         minute: 60 * 1000,
@@ -956,6 +965,7 @@
       const metricDefs = [
         { key: "years", unitMs: UNIT_MS.year, hitLabel: "years", minThreshold: 1, includeLastTen: true, decimals: 7 },
         { key: "months", unitMs: UNIT_MS.month, hitLabel: "months", minThreshold: 1, includeLastTen: true, decimals: 6 },
+        { key: "weeks", unitMs: UNIT_MS.week, hitLabel: "weeks", minThreshold: 1, includeLastTen: true, decimals: 5 },
         { key: "days", unitMs: UNIT_MS.day, hitLabel: "days", minThreshold: 1, includeLastTen: true, decimals: 4 },
         { key: "hours", unitMs: UNIT_MS.hour, hitLabel: "hours", minThreshold: 10, includeLastTen: true, decimals: 3 },
         { key: "workHours", unitMs: UNIT_MS.workHour, hitLabel: "workday hours", minThreshold: 10, includeLastTen: true, decimals: 3 },
@@ -1074,6 +1084,7 @@
         return {
           years: remainingMs / UNIT_MS.year,
           months: remainingMs / UNIT_MS.month,
+          weeks: remainingMs / UNIT_MS.week,
           days: remainingMs / UNIT_MS.day,
           hours: remainingMs / UNIT_MS.hour,
           workHours: computeRemainingWorkHours(nowMs, END_MS),
@@ -1109,74 +1120,6 @@
 
       function clamp(value, min, max) {
         return Math.min(max, Math.max(min, value));
-      }
-
-      function colorFromCsvFields(cells, idxHex, idxR, idxG, idxB) {
-        if (idxHex >= 0) {
-          const hex = (cells[idxHex] || "").trim();
-          if (/^#[0-9a-fA-F]{6}$/.test(hex)) {
-            return hex;
-          }
-        }
-
-        const r = idxR >= 0 ? Number.parseInt(cells[idxR], 10) : Number.NaN;
-        const g = idxG >= 0 ? Number.parseInt(cells[idxG], 10) : Number.NaN;
-        const b = idxB >= 0 ? Number.parseInt(cells[idxB], 10) : Number.NaN;
-        if (Number.isFinite(r) && Number.isFinite(g) && Number.isFinite(b)) {
-          return (
-            "#" +
-            clamp(r, 0, 255).toString(16).padStart(2, "0") +
-            clamp(g, 0, 255).toString(16).padStart(2, "0") +
-            clamp(b, 0, 255).toString(16).padStart(2, "0")
-          ).toUpperCase();
-        }
-
-        return "#5B2F66";
-      }
-
-      function parsePyramidLayerCsv(csvText) {
-        const lines = csvText.split(/\r?\n/).filter((line) => line.trim());
-        if (lines.length < 2) {
-          return [];
-        }
-
-        const headers = lines[0].split(",");
-        const col = (name) => headers.indexOf(name);
-        const idxLayer = col("bottom_layer_index");
-        const idxMonth = col("month_label");
-        const idxStart = col("height_start_pct_from_bottom");
-        const idxEnd = col("height_end_pct_from_bottom");
-        const idxHex = col("color_hex");
-        const idxR = col("color_r");
-        const idxG = col("color_g");
-        const idxB = col("color_b");
-
-        if (idxStart < 0 || idxEnd < 0) {
-          return [];
-        }
-
-        const rows = [];
-        for (let i = 1; i < lines.length; i += 1) {
-          const cells = lines[i].split(",");
-          const startPct = Number.parseFloat(cells[idxStart] || "");
-          const endPct = Number.parseFloat(cells[idxEnd] || "");
-          if (!Number.isFinite(startPct) || !Number.isFinite(endPct) || endPct <= startPct) {
-            continue;
-          }
-
-          const color = colorFromCsvFields(cells, idxHex, idxR, idxG, idxB);
-          const layerIndex = idxLayer >= 0 ? Number.parseInt(cells[idxLayer], 10) : i;
-          rows.push({
-            layerIndex: Number.isFinite(layerIndex) ? layerIndex : i,
-            monthLabel: idxMonth >= 0 ? (cells[idxMonth] || "").trim() : "",
-            startPct: clamp(startPct, 0, 100),
-            endPct: clamp(endPct, 0, 100),
-            color
-          });
-        }
-
-        rows.sort((a, b) => a.layerIndex - b.layerIndex);
-        return rows;
       }
 
       function parseCompactPyramidLayerData(text) {
@@ -1220,14 +1163,15 @@
         return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
       }
 
-      function shadeHexColor(hex, shade) {
+      function shadeHexColorRgba(hex, shade, alpha) {
         const rgb = hexToRgb(hex);
-        const s = clamp(shade, 0.1, 1.5);
+        const s = clamp(shade, 0.1, 1.8);
         return (
-          "rgb(" +
+          "rgba(" +
           Math.round(clamp(rgb.r * s, 0, 255)) + "," +
           Math.round(clamp(rgb.g * s, 0, 255)) + "," +
-          Math.round(clamp(rgb.b * s, 0, 255)) +
+          Math.round(clamp(rgb.b * s, 0, 255)) + "," +
+          clamp(alpha, 0, 1).toFixed(3) +
           ")"
         );
       }
@@ -1236,6 +1180,14 @@
         return {
           x: a.x + (b.x - a.x) * t,
           y: a.y + (b.y - a.y) * t
+        };
+      }
+
+      function lerp3(a, b, t) {
+        return {
+          x: a.x + (b.x - a.x) * t,
+          y: a.y + (b.y - a.y) * t,
+          z: a.z + (b.z - a.z) * t
         };
       }
 
@@ -1255,6 +1207,37 @@
         return a.x * b.x + a.y * b.y + a.z * b.z;
       }
 
+      function normalize3(v) {
+        const mag = Math.hypot(v.x, v.y, v.z);
+        if (mag <= 1e-9) {
+          return { x: 0, y: 0, z: 0 };
+        }
+        return { x: v.x / mag, y: v.y / mag, z: v.z / mag };
+      }
+
+      function average3(points) {
+        let x = 0;
+        let y = 0;
+        let z = 0;
+        for (let i = 0; i < points.length; i += 1) {
+          x += points[i].x;
+          y += points[i].y;
+          z += points[i].z;
+        }
+        const n = points.length || 1;
+        return { x: x / n, y: y / n, z: z / n };
+      }
+
+      function buildCameraBasis(cameraPos, lookAt, upHint) {
+        const forward = normalize3(subtract3(lookAt, cameraPos));
+        let right = normalize3(cross3(forward, upHint));
+        if (Math.hypot(right.x, right.y, right.z) <= 1e-9) {
+          right = { x: 1, y: 0, z: 0 };
+        }
+        const up = normalize3(cross3(right, forward));
+        return { right, up, forward };
+      }
+
       function rotateVertex(v, yaw, pitch) {
         const cosY = Math.cos(yaw);
         const sinY = Math.sin(yaw);
@@ -1270,65 +1253,149 @@
         return { x: x1, y: y2, z: z2 };
       }
 
-      function projectVertex(v, width, height, scale, camera) {
-        const depth = Math.max(0.2, camera - v.z);
-        const perspective = camera / depth;
+      function projectWorldVertex(v, width, height, focalLength) {
+        const rel = subtract3(v, TETRA_CAMERA_POS);
+        const camX = dot3(rel, TETRA_CAMERA_BASIS.right);
+        const camY = dot3(rel, TETRA_CAMERA_BASIS.up);
+        const camZ = dot3(rel, TETRA_CAMERA_BASIS.forward);
+        if (camZ <= 0.08) {
+          return null;
+        }
         return {
-          x: width * 0.5 + v.x * scale * perspective,
-          y: height * 0.58 - v.y * scale * perspective,
-          z: v.z
+          x: width * 0.5 + (camX * focalLength) / camZ,
+          y: height * TETRA_CENTER_Y - (camY * focalLength) / camZ,
+          z: camZ
         };
       }
 
-      function drawFaceLayers(ctx, a, b, c, rows, cutRatio, shade) {
-        ctx.save();
-        ctx.beginPath();
-        ctx.moveTo(a.x, a.y);
-        ctx.lineTo(b.x, b.y);
-        ctx.lineTo(c.x, c.y);
-        ctx.closePath();
-        ctx.clip();
+      function drawLayerBandOnFace(ctx, apex, edgeA, edgeB, topT, bottomT, fillStyle, strokeStyle, lineWidth) {
+        const p1 = lerpPoint(apex, edgeA, topT);
+        const p2 = lerpPoint(apex, edgeB, topT);
+        const p3 = lerpPoint(apex, edgeB, bottomT);
+        const p4 = lerpPoint(apex, edgeA, bottomT);
 
+        ctx.fillStyle = fillStyle;
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.lineTo(p3.x, p3.y);
+        ctx.lineTo(p4.x, p4.y);
+        ctx.closePath();
+        ctx.fill();
+        if (strokeStyle) {
+          ctx.strokeStyle = strokeStyle;
+          ctx.lineWidth = lineWidth || 0.8;
+          ctx.stroke();
+        }
+      }
+
+      function drawFaceLayers(ctx, face, rows, capHeightRatio) {
+        const epsilon = 1e-6;
+        const cap = clamp(capHeightRatio, 0, 1);
         for (let i = 0; i < rows.length; i += 1) {
           const row = rows[i];
-          const topT = Math.max(1 - row.endPct / 100, cutRatio);
-          const bottomT = Math.max(1 - row.startPct / 100, cutRatio);
-          if (bottomT <= topT) {
+          const layerTopT = clamp(1 - row.endPct / 100, 0, 1);
+          const layerBottomT = clamp(1 - row.startPct / 100, 0, 1);
+          if (layerBottomT - layerTopT <= epsilon) {
             continue;
           }
 
-          const p1 = lerpPoint(a, b, topT);
-          const p2 = lerpPoint(a, c, topT);
-          const p3 = lerpPoint(a, c, bottomT);
-          const p4 = lerpPoint(a, b, bottomT);
+          // Elapsed months (below the cut): solid but slightly muted.
+          const pastTop = Math.max(layerTopT, cap);
+          const pastBottom = layerBottomT;
+          if (pastBottom - pastTop > epsilon) {
+            drawLayerBandOnFace(
+              ctx,
+              face.apex2,
+              face.edgeA2,
+              face.edgeB2,
+              pastTop,
+              pastBottom,
+              shadeHexColorRgba(row.color, face.shade * 1.02, 0.9)
+            );
+          }
 
-          ctx.fillStyle = shadeHexColor(row.color, shade);
-          ctx.beginPath();
-          ctx.moveTo(p1.x, p1.y);
-          ctx.lineTo(p2.x, p2.y);
-          ctx.lineTo(p3.x, p3.y);
-          ctx.lineTo(p4.x, p4.y);
-          ctx.closePath();
-          ctx.fill();
+          // Remaining months (above the cut): ghostly translucent.
+          const remainTop = layerTopT;
+          const remainBottom = Math.min(layerBottomT, cap);
+          if (remainBottom - remainTop > epsilon) {
+            drawLayerBandOnFace(
+              ctx,
+              face.apex2,
+              face.edgeA2,
+              face.edgeB2,
+              remainTop,
+              remainBottom,
+              shadeHexColorRgba(row.color, face.shade * 1.35, 0.32),
+              shadeHexColorRgba(row.color, face.shade * 1.5, 0.38),
+              0.9
+            );
+          }
         }
 
-        if (cutRatio > 0) {
-          const h1 = lerpPoint(a, b, cutRatio);
-          const h2 = lerpPoint(a, c, cutRatio);
-          const hazeGradient = ctx.createLinearGradient(a.x, a.y, (h1.x + h2.x) * 0.5, (h1.y + h2.y) * 0.5);
-          hazeGradient.addColorStop(0, "rgba(255, 249, 238, 0.42)");
-          hazeGradient.addColorStop(0.52, "rgba(255, 214, 244, 0.2)");
-          hazeGradient.addColorStop(1, "rgba(255, 249, 238, 0.04)");
-          ctx.fillStyle = hazeGradient;
+        if (cap > epsilon && cap < 1 - epsilon) {
+          const h1 = lerpPoint(face.apex2, face.edgeA2, cap);
+          const h2 = lerpPoint(face.apex2, face.edgeB2, cap);
+          const mist = ctx.createLinearGradient(
+            face.apex2.x,
+            face.apex2.y,
+            (h1.x + h2.x) * 0.5,
+            (h1.y + h2.y) * 0.5
+          );
+          mist.addColorStop(0, "rgba(238, 244, 255, 0.44)");
+          mist.addColorStop(0.55, "rgba(228, 205, 255, 0.2)");
+          mist.addColorStop(1, "rgba(218, 169, 255, 0.05)");
+          ctx.fillStyle = mist;
           ctx.beginPath();
-          ctx.moveTo(a.x, a.y);
+          ctx.moveTo(face.apex2.x, face.apex2.y);
           ctx.lineTo(h1.x, h1.y);
           ctx.lineTo(h2.x, h2.y);
           ctx.closePath();
           ctx.fill();
         }
+      }
 
-        ctx.restore();
+      function drawCapPlane(ctx, rotatedVertices, width, height, focalLength, capHeightRatio) {
+        if (capHeightRatio <= 1e-4 || capHeightRatio >= 1) {
+          return;
+        }
+
+        const apex = rotatedVertices[0];
+        const capWorld = TETRA_BASE_RING.map((idx) => lerp3(apex, rotatedVertices[idx], capHeightRatio));
+        const capProjected = capWorld.map((point) => projectWorldVertex(point, width, height, focalLength));
+        if (capProjected.some((point) => !point)) {
+          return;
+        }
+
+        const normal = cross3(subtract3(capWorld[1], capWorld[0]), subtract3(capWorld[2], capWorld[0]));
+        const centroid = average3(capWorld);
+        const toCamera = subtract3(TETRA_CAMERA_POS, centroid);
+        if (dot3(normal, toCamera) <= 0) {
+          return;
+        }
+
+        const glow = ctx.createLinearGradient(
+          capProjected[0].x,
+          capProjected[0].y,
+          capProjected[2].x,
+          capProjected[2].y
+        );
+        glow.addColorStop(0, "rgba(244, 250, 255, 0.48)");
+        glow.addColorStop(0.5, "rgba(228, 194, 255, 0.24)");
+        glow.addColorStop(1, "rgba(244, 250, 255, 0.45)");
+
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.moveTo(capProjected[0].x, capProjected[0].y);
+        for (let i = 1; i < capProjected.length; i += 1) {
+          ctx.lineTo(capProjected[i].x, capProjected[i].y);
+        }
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.strokeStyle = "rgba(233, 218, 255, 0.34)";
+        ctx.lineWidth = 0.9;
+        ctx.stroke();
       }
 
       function drawTetrahedron(nowMs) {
@@ -1345,50 +1412,65 @@
 
         const yaw = TETRA_YAW_OFFSET + ((nowMs / 1000) / TETRA_ROTATION_SECONDS) * Math.PI * 2;
         const rotatedVertices = TETRA_MODEL_VERTICES.map((vertex) => rotateVertex(vertex, yaw, TETRA_PITCH));
-        const scale = Math.min(width, height) * TETRA_SCALE_FACTOR;
-        const projectedVertices = rotatedVertices.map((vertex) => projectVertex(vertex, width, height, scale, TETRA_CAMERA));
-
-        const faces = TETRA_FACES.map((faceDef) => {
-          const rv0 = rotatedVertices[faceDef.idx[0]];
-          const rv1 = rotatedVertices[faceDef.idx[1]];
-          const rv2 = rotatedVertices[faceDef.idx[2]];
-          const a = projectedVertices[faceDef.idx[0]];
-          const b = projectedVertices[faceDef.idx[1]];
-          const c = projectedVertices[faceDef.idx[2]];
-          const centroid = {
-            x: (rv0.x + rv1.x + rv2.x) / 3,
-            y: (rv0.y + rv1.y + rv2.y) / 3,
-            z: (rv0.z + rv1.z + rv2.z) / 3
-          };
-
-          let normal = cross3(subtract3(rv1, rv0), subtract3(rv2, rv0));
-          if (dot3(normal, centroid) < 0) {
-            normal = { x: -normal.x, y: -normal.y, z: -normal.z };
+        const fovRadians = (TETRA_FOV_DEG * Math.PI) / 180;
+        const focalLength = (Math.min(width, height) * 0.5 * TETRA_SCALE_FACTOR) / Math.tan(fovRadians / 2);
+        const projectedVertices = rotatedVertices.map((vertex) => projectWorldVertex(vertex, width, height, focalLength));
+        const framePoints = projectedVertices.filter(Boolean);
+        let frameDx = 0;
+        let frameDy = 0;
+        if (framePoints.length) {
+          let minX = Infinity;
+          let maxX = -Infinity;
+          let minY = Infinity;
+          let maxY = -Infinity;
+          for (let i = 0; i < framePoints.length; i += 1) {
+            const point = framePoints[i];
+            minX = Math.min(minX, point.x);
+            maxX = Math.max(maxX, point.x);
+            minY = Math.min(minY, point.y);
+            maxY = Math.max(maxY, point.y);
           }
-          const toCamera = { x: -centroid.x, y: -centroid.y, z: TETRA_CAMERA - centroid.z };
-          const visible = dot3(normal, toCamera) > 0;
+          frameDx = width * 0.5 - (minX + maxX) * 0.5;
+          frameDy = height * TETRA_TARGET_CENTER_Y - (minY + maxY) * 0.5;
+        }
+
+        const faces = TETRA_SIDE_FACES.map((faceDef) => {
+          const i0 = faceDef.idx[0];
+          const i1 = faceDef.idx[1];
+          const i2 = faceDef.idx[2];
+          const w0 = rotatedVertices[i0];
+          const w1 = rotatedVertices[i1];
+          const w2 = rotatedVertices[i2];
+          const p0 = projectedVertices[i0];
+          const p1 = projectedVertices[i1];
+          const p2 = projectedVertices[i2];
+          if (!p0 || !p1 || !p2) {
+            return null;
+          }
+
+          const normal = cross3(subtract3(w1, w0), subtract3(w2, w0));
+          const centroid = average3([w0, w1, w2]);
+          const toCamera = subtract3(TETRA_CAMERA_POS, centroid);
+          if (dot3(normal, toCamera) <= 0) {
+            return null;
+          }
 
           return {
-            points: [a, b, c],
-            depth: centroid.z,
-            visible,
+            apex2: p0,
+            edgeA2: p1,
+            edgeB2: p2,
             shade: faceDef.shade,
-            cut: faceDef.cut,
-            isBase: faceDef.isBase
+            depth: (p0.z + p1.z + p2.z) / 3
           };
-        })
-          // Keep the base in the model, but never render it from this camera view.
-          .filter((face) => face.visible && !face.isBase)
-          .sort((left, right) => left.depth - right.depth);
+        }).filter(Boolean).sort((left, right) => right.depth - left.depth);
 
+        tetraCtx.save();
+        tetraCtx.translate(frameDx, frameDy);
         for (const face of faces) {
-          const [a, b, c] = face.points;
-          const area2 = (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
-          if (Math.abs(area2) < 0.2) {
-            continue;
-          }
-          drawFaceLayers(tetraCtx, a, b, c, tetraRows, face.cut ? tetraCutRatio : 0, face.shade);
+          drawFaceLayers(tetraCtx, face, tetraRows, tetraCutRatio);
         }
+        drawCapPlane(tetraCtx, rotatedVertices, width, height, focalLength, tetraCutRatio);
+        tetraCtx.restore();
       }
 
       function tetraLoop(nowMs) {
@@ -1416,7 +1498,7 @@
         tetraRows = rows.slice();
       }
 
-      async function loadPyramidLayers() {
+      function loadPyramidLayers() {
         const inlineDataNode = document.getElementById(INLINE_PYRAMID_DATA_ID);
         if (inlineDataNode) {
           const inlineRows = parseCompactPyramidLayerData(inlineDataNode.textContent || "");
@@ -1425,22 +1507,7 @@
             return;
           }
         }
-
-        try {
-          const response = await fetch(PYRAMID_LAYER_CSV, { cache: "no-store" });
-          if (!response.ok) {
-            throw new Error("Layer CSV fetch failed");
-          }
-          const csvText = await response.text();
-          const rows = parsePyramidLayerCsv(csvText);
-          if (rows.length) {
-            setTetraRows(rows);
-            return;
-          }
-          setTetraRows([]);
-        } catch (error) {
-          setTetraRows([]);
-        }
+        setTetraRows([]);
       }
 
       function setPyramidCutaway(percentLeft) {
