@@ -1888,8 +1888,8 @@
           const pA = lerpPoint(face.apex2, face.edgeA2, markerT);
           const pB = lerpPoint(face.apex2, face.edgeB2, markerT);
           const isPast = markerT >= cap;
-          const alpha = isPast ? 0.86 : 0.24;
-          const radius = isPast ? 1.38 : 1.02;
+          const alpha = isPast ? 0.82 : 0.2;
+          const radius = isPast ? 0.58 : 0.42;
 
           ctx.beginPath();
           ctx.fillStyle = "rgba(250, 252, 255, " + alpha.toFixed(3) + ")";
@@ -1976,15 +1976,15 @@
             midY,
             radius
           );
-          haze.addColorStop(0, "rgba(248, 252, 255, 0.08)");
-          haze.addColorStop(0.5, "rgba(238, 228, 255, 0.03)");
+          haze.addColorStop(0, "rgba(248, 252, 255, 0.03)");
+          haze.addColorStop(0.5, "rgba(238, 228, 255, 0.012)");
           haze.addColorStop(1, "rgba(238, 228, 255, 0)");
           ctx.filter = "blur(18px)";
           ctx.fillStyle = haze;
           ctx.fillRect(minX - 24, minY - 24, (maxX - minX) + 48, (maxY - minY) + 48);
 
           const veil = ctx.createLinearGradient(face.apex2.x, face.apex2.y, (h1.x + h2.x) * 0.5, (h1.y + h2.y) * 0.5);
-          veil.addColorStop(0, "rgba(252, 255, 255, 0.026)");
+          veil.addColorStop(0, "rgba(252, 255, 255, 0.012)");
           veil.addColorStop(1, "rgba(252, 255, 255, 0)");
           ctx.filter = "none";
           ctx.fillStyle = veil;
@@ -2015,60 +2015,70 @@
         const normal = cross3(subtract3(capWorld[1], capWorld[0]), subtract3(capWorld[2], capWorld[0]));
         const centroid = average3(capWorld);
         const toCamera = subtract3(TETRA_CAMERA_POS, centroid);
-        if (dot3(normal, toCamera) <= 0) {
-          return;
-        }
+        const facing = dot3(normal, toCamera) > 0 ? 1 : -1;
+        const orderedCap = facing > 0 ? capProjected : [capProjected[0], capProjected[3], capProjected[2], capProjected[1]];
 
         const planeFill = ctx.createLinearGradient(
-          capProjected[0].x,
-          capProjected[0].y,
-          capProjected[2].x,
-          capProjected[2].y
+          orderedCap[0].x,
+          orderedCap[0].y,
+          orderedCap[2].x,
+          orderedCap[2].y
         );
-        planeFill.addColorStop(0, "rgba(249, 253, 255, 0.34)");
-        planeFill.addColorStop(0.55, "rgba(236, 224, 255, 0.19)");
-        planeFill.addColorStop(1, "rgba(226, 207, 255, 0.12)");
+        planeFill.addColorStop(0, "rgba(254, 255, 255, 0.6)");
+        planeFill.addColorStop(0.55, "rgba(242, 236, 255, 0.4)");
+        planeFill.addColorStop(1, "rgba(229, 216, 255, 0.28)");
 
         ctx.save();
-        ctx.globalCompositeOperation = "screen";
         ctx.beginPath();
-        ctx.moveTo(capProjected[0].x, capProjected[0].y);
-        for (let i = 1; i < capProjected.length; i += 1) {
-          ctx.lineTo(capProjected[i].x, capProjected[i].y);
+        ctx.moveTo(orderedCap[0].x, orderedCap[0].y);
+        for (let i = 1; i < orderedCap.length; i += 1) {
+          ctx.lineTo(orderedCap[i].x, orderedCap[i].y);
         }
         ctx.closePath();
         ctx.fillStyle = planeFill;
         ctx.fill();
-        ctx.strokeStyle = "rgba(252, 255, 255, 0.56)";
-        ctx.lineWidth = 1.15;
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.96)";
+        ctx.lineWidth = 1.65;
         ctx.stroke();
+        ctx.strokeStyle = "rgba(255, 220, 255, 0.58)";
+        ctx.lineWidth = 3.4;
+        ctx.filter = "blur(1.3px)";
+        ctx.stroke();
+
+        for (let i = 0; i < orderedCap.length; i += 1) {
+          const vertex = orderedCap[i];
+          ctx.beginPath();
+          ctx.fillStyle = "rgba(255, 255, 255, 0.98)";
+          ctx.arc(vertex.x, vertex.y, 1.15, 0, Math.PI * 2);
+          ctx.fill();
+        }
         ctx.restore();
 
-        const centerX = (capProjected[0].x + capProjected[1].x + capProjected[2].x + capProjected[3].x) * 0.25;
-        const centerY = (capProjected[0].y + capProjected[1].y + capProjected[2].y + capProjected[3].y) * 0.25;
+        const centerX = (orderedCap[0].x + orderedCap[1].x + orderedCap[2].x + orderedCap[3].x) * 0.25;
+        const centerY = (orderedCap[0].y + orderedCap[1].y + orderedCap[2].y + orderedCap[3].y) * 0.25;
         let radius = 0;
-        for (let i = 0; i < capProjected.length; i += 1) {
-          radius += Math.hypot(capProjected[i].x - centerX, capProjected[i].y - centerY);
+        for (let i = 0; i < orderedCap.length; i += 1) {
+          radius += Math.hypot(orderedCap[i].x - centerX, orderedCap[i].y - centerY);
         }
-        radius = (radius / capProjected.length) * 1.1;
+        radius = (radius / orderedCap.length) * 1.03;
         const glow = ctx.createRadialGradient(
           centerX,
           centerY,
           radius * 0.12,
           centerX,
           centerY,
-          radius * 1.08
+          radius * 0.98
         );
-        glow.addColorStop(0, "rgba(246, 252, 255, 0.1)");
-        glow.addColorStop(0.55, "rgba(234, 212, 255, 0.04)");
+        glow.addColorStop(0, "rgba(246, 252, 255, 0.15)");
+        glow.addColorStop(0.55, "rgba(234, 212, 255, 0.07)");
         glow.addColorStop(1, "rgba(246, 252, 255, 0)");
 
         ctx.save();
         ctx.globalCompositeOperation = "screen";
-        ctx.filter = "blur(10px)";
+        ctx.filter = "blur(7px)";
         ctx.fillStyle = glow;
         ctx.beginPath();
-        ctx.arc(centerX, centerY, radius * 1.1, 0, Math.PI * 2);
+        ctx.arc(centerX, centerY, radius * 0.94, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
       }
