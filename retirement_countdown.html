@@ -183,7 +183,7 @@
 
     .percent-box {
       margin-top: 10px;
-      padding: 8px 10px;
+      padding: 8px 10px 5px;
       border-radius: 15px;
       background:
         linear-gradient(rgba(88, 30, 76, 0.6), rgba(66, 23, 61, 0.56)) padding-box,
@@ -216,7 +216,7 @@
     }
 
     .percent-viz {
-      margin-top: 6px;
+      margin-top: 4px;
       display: flex;
       justify-content: center;
     }
@@ -265,7 +265,7 @@
     }
 
     .pyramid-note {
-      margin: 6px 0 0;
+      margin: 2px 0 0;
       font-size: 0.7rem;
       line-height: 1.2;
       color: #ffd8aa;
@@ -274,7 +274,7 @@
     }
 
     .grid {
-      margin-top: 10px;
+      margin-top: 6px;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
@@ -437,7 +437,7 @@
       </section>
 
       <div class="event-stream" id="eventStream" aria-live="polite" aria-atomic="false"></div>
-      <p class="footnote">Counters sample continuously and repaint only when each displayed value changes at its current decimal precision. Workday hours use an 8-hour-per-day equivalent.</p>
+      <p class="footnote">Counters sample continuously and repaint only when each displayed value changes at its current decimal precision. Workday hours use a Monday-Thursday week with a 7:00 AM-5:30 PM day and lunch from 12:00 PM-12:30 PM.</p>
     </section>
   </main>
 
@@ -445,8 +445,15 @@
     (() => {
       const START = new Date(1994, 0, 5, 8, 0, 0, 0);
       const END = new Date(2026, 5, 25, 17, 30, 0, 0);
-      const TOTAL_MS = END.getTime() - START.getTime();
+      const END_MS = END.getTime();
+      const TOTAL_MS = END_MS - START.getTime();
       const SAMPLE_MS = 250;
+      const WORK_START_DAY = 1;
+      const WORK_END_DAY = 4;
+      const WORK_BLOCKS = [
+        { startHour: 7, startMinute: 0, endHour: 12, endMinute: 0 },
+        { startHour: 12, startMinute: 30, endHour: 17, endMinute: 30 }
+      ];
 
       const UNIT_MS = {
         year: 365.2425 * 24 * 60 * 60 * 1000,
@@ -455,7 +462,7 @@
         hour: 60 * 60 * 1000,
         minute: 60 * 1000,
         second: 1000,
-        workHour: (24 * 60 * 60 * 1000) / 8
+        workHour: 60 * 60 * 1000
       };
 
       const metricDefs = [
@@ -486,10 +493,15 @@
       }
 
       const displayCache = new Map();
-      const initialRemainingMs = Math.max(0, END.getTime() - Date.now());
+      const initialNowMs = Date.now();
+      const initialRemainingMs = Math.max(0, END_MS - initialNowMs);
       const thresholdMap = {};
       for (const def of metricDefs) {
-        thresholdMap[def.key] = buildMemorableThresholds(initialRemainingMs / def.unitMs, {
+        const initialMetricValue =
+          def.key === "workHours"
+            ? computeRemainingWorkHours(initialNowMs, END_MS)
+            : initialRemainingMs / def.unitMs;
+        thresholdMap[def.key] = buildMemorableThresholds(initialMetricValue, {
           min: def.minThreshold,
           includeLastTen: def.includeLastTen
         });
@@ -532,14 +544,47 @@
         return Array.from(set).sort((a, b) => b - a);
       }
 
+      function computeRemainingWorkHours(fromMs, toMs) {
+        if (toMs <= fromMs) {
+          return 0;
+        }
+
+        let totalWorkMs = 0;
+        const dayCursor = new Date(fromMs);
+        dayCursor.setHours(0, 0, 0, 0);
+
+        while (dayCursor.getTime() < toMs) {
+          const dayOfWeek = dayCursor.getDay();
+          const isWorkday = dayOfWeek >= WORK_START_DAY && dayOfWeek <= WORK_END_DAY;
+          if (isWorkday) {
+            for (const block of WORK_BLOCKS) {
+              const workStart = new Date(dayCursor);
+              workStart.setHours(block.startHour, block.startMinute, 0, 0);
+              const workEnd = new Date(dayCursor);
+              workEnd.setHours(block.endHour, block.endMinute, 0, 0);
+
+              const overlapStart = Math.max(fromMs, workStart.getTime());
+              const overlapEnd = Math.min(toMs, workEnd.getTime());
+              if (overlapEnd > overlapStart) {
+                totalWorkMs += overlapEnd - overlapStart;
+              }
+            }
+          }
+
+          dayCursor.setDate(dayCursor.getDate() + 1);
+        }
+
+        return totalWorkMs / UNIT_MS.hour;
+      }
+
       function computeValues(nowMs) {
-        const remainingMs = Math.max(0, END.getTime() - nowMs);
+        const remainingMs = Math.max(0, END_MS - nowMs);
         return {
           years: remainingMs / UNIT_MS.year,
           months: remainingMs / UNIT_MS.month,
           days: remainingMs / UNIT_MS.day,
           hours: remainingMs / UNIT_MS.hour,
-          workHours: remainingMs / UNIT_MS.workHour,
+          workHours: computeRemainingWorkHours(nowMs, END_MS),
           minutes: remainingMs / UNIT_MS.minute,
           seconds: remainingMs / UNIT_MS.second,
           percentLeft: TOTAL_MS > 0 ? (remainingMs / TOTAL_MS) * 100 : 0,
