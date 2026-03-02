@@ -391,6 +391,27 @@
         font-size: 0.9rem;
       }
     }
+
+    /* iPhone Safari full-bleed: content runs under browser chrome */
+    @supports (-webkit-touch-callout: none) {
+      .shell {
+        width: 100%;
+        max-width: none;
+        padding: 0;
+      }
+
+      .panel {
+        min-height: 100svh;
+        min-height: 100dvh;
+        border-radius: 0;
+        border-left: 0;
+        border-right: 0;
+        padding:
+          calc(6px + env(safe-area-inset-top))
+          10px
+          calc(6px + env(safe-area-inset-bottom));
+      }
+    }
   </style>
 </head>
 <body>
