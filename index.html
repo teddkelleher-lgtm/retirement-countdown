@@ -195,13 +195,15 @@
 
     .percent-box {
       margin-top: 10px;
-      min-height: 250px;
+      min-height: 332px;
       padding: 12px 10px 12px;
       border-radius: 15px;
       background:
         linear-gradient(rgba(88, 30, 76, 0.6), rgba(66, 23, 61, 0.56)) padding-box,
         linear-gradient(125deg, rgba(255, 94, 182, 0.56), rgba(255, 157, 77, 0.6), rgba(184, 255, 88, 0.46)) border-box;
       border: 1px solid transparent;
+      display: flex;
+      flex-direction: column;
     }
 
     .percent-row {
@@ -229,19 +231,21 @@
     }
 
     .percent-viz {
-      margin-top: 10px;
+      margin-top: 8px;
       display: flex;
+      align-items: center;
       justify-content: center;
+      flex: 1;
     }
 
     .pyramid-shell {
-      width: 168px;
-      min-width: 168px;
-      aspect-ratio: 1 / 1.18;
+      width: min(74vw, 260px);
+      min-width: 220px;
+      aspect-ratio: 1 / 1.34;
       border-radius: 10px;
       padding: 2px;
-      background: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.18), transparent 70%);
-      box-shadow: inset 0 0 20px rgba(255, 175, 80, 0.14), 0 0 18px rgba(255, 210, 105, 0.22);
+      background: transparent;
+      box-shadow: none;
     }
 
     .pyramid-svg {
@@ -250,18 +254,21 @@
       display: block;
     }
 
-    .pyramid-outline {
-      fill: none;
-      stroke: rgba(255, 234, 196, 0.95);
-      stroke-width: 2.2;
-      filter: drop-shadow(0 0 4px rgba(255, 223, 122, 0.55));
-    }
-
     .pyramid-fill {
-      fill: url(#pyramidFillGradient);
+      fill: #5B2F66;
       opacity: 0.96;
       transition: d 450ms linear;
-      filter: drop-shadow(0 0 8px rgba(255, 154, 77, 0.4));
+    }
+
+    .pyramid-layers {
+      pointer-events: none;
+    }
+
+    .pyramid-layer {
+      stroke: rgba(255, 248, 228, 0.42);
+      stroke-width: 0.24;
+      vector-effect: non-scaling-stroke;
+      opacity: 1;
     }
 
     .pyramid-void {
@@ -275,15 +282,6 @@
       stroke-width: 1.7;
       stroke-dasharray: 2.2 3.2;
       opacity: 0.9;
-    }
-
-    .pyramid-note {
-      margin: 9px 0 0;
-      font-size: 0.72rem;
-      line-height: 1.2;
-      color: #ffd8aa;
-      letter-spacing: 0.01em;
-      text-align: center;
     }
 
     .grid {
@@ -469,20 +467,17 @@
           <div class="pyramid-shell" role="progressbar" aria-label="Career time left in pyramid form" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="leftPyramidWrap">
             <svg class="pyramid-svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
               <defs>
-                <linearGradient id="pyramidFillGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#ffcf63"></stop>
-                  <stop offset="45%" stop-color="#ff8a56"></stop>
-                  <stop offset="100%" stop-color="#ff5eb6"></stop>
-                </linearGradient>
+                <clipPath id="pyramidFillClip">
+                  <path id="pyramidClipPath" d=""></path>
+                </clipPath>
               </defs>
               <path class="pyramid-fill" id="pyramidFill" d=""></path>
+              <g class="pyramid-layers" id="pyramidLayers" clip-path="url(#pyramidFillClip)"></g>
               <path class="pyramid-void" id="pyramidVoid" d=""></path>
               <path class="pyramid-cutline" id="pyramidCutline" d=""></path>
-              <path class="pyramid-outline" d="M 50 10 L 92 92 L 8 92 Z"></path>
             </svg>
           </div>
         </div>
-        <p class="pyramid-note">Missing tip area equals remaining career time.</p>
       </section>
 
       <section class="grid" aria-label="Countdown metrics">
@@ -526,6 +521,399 @@
     </section>
   </main>
 
+  <script id="pyramidLayerData" type="text/plain">
+0.000000000,0.075008540,#320059
+0.075008540,0.153888893,#330058
+0.153888893,0.241366344,#50003B
+0.241366344,0.326168263,#51003A
+0.326168263,0.413948773,#5B0030
+0.413948773,0.499045247,#5B0030
+0.499045247,0.587131454,#7B0010
+0.587131454,0.675374038,#670024
+0.675374038,0.760919634,#630028
+0.760919634,0.849471965,#4F003C
+0.849471965,0.935318634,#2E005D
+0.935318634,1.024183444,#320059
+1.024183444,1.113208115,#360055
+1.113208115,1.193755498,#440047
+1.193755498,1.283086415,#4F003C
+1.283086415,1.369689898,#4B0040
+1.369689898,1.459340227,#620029
+1.459340227,1.546254202,#750016
+1.546254202,1.636226815,#750016
+1.636226815,1.726364323,#680023
+1.726364323,1.813751887,#660025
+1.813751887,1.904216086,#4E003D
+1.904216086,1.991921237,#440047
+1.991921237,2.082715104,#3A0051
+2.082715104,2.173677661,#340057
+2.173677661,2.258925078,#40004B
+2.258925078,2.350216370,#460045
+2.350216370,2.438725600,#550036
+2.438725600,2.530354167,#51003A
+2.530354167,2.619191304,#5B0030
+2.619191304,2.711160278,#790012
+2.711160278,2.803303462,#740017
+2.803303462,2.892640935,#5D002E
+2.892640935,2.985129341,#5B0030
+2.985129341,3.074802466,#3E004D
+3.074802466,3.167639344,#320059
+3.167639344,3.260654577,#370054
+3.260654577,3.344822349,#430048
+3.344822349,3.438179410,#40004B
+3.438179410,3.528697154,#4F003C
+3.528697154,3.622410951,#5C002F
+3.622410951,3.713275575,#590032
+3.713275575,3.807349537,#690022
+3.807349537,3.901607863,#6C001F
+3.901607863,3.993001990,#630028
+3.993001990,4.087625750,#4B0040
+4.087625750,4.179375241,#440047
+4.179375241,4.274367998,#2F005C
+4.274367998,4.369549661,#360055
+4.369549661,4.455683347,#390052
+4.455683347,4.551227150,#440047
+4.551227150,4.643871372,#60002B
+4.643871372,4.739793233,#620029
+4.739793233,4.832805131,#61002A
+4.832805131,4.929108814,#7E000D
+4.929108814,5.025607997,#70001B
+5.025607997,5.119181384,#6B0020
+5.119181384,5.216068177,#520039
+5.216068177,5.310018557,#360055
+5.310018557,5.407296875,#340057
+5.407296875,5.504775686,#2E005D
+5.504775686,5.592994254,#30005B
+5.592994254,5.690857518,#490042
+5.690857518,5.785757676,#550036
+5.785757676,5.884022436,#5A0031
+5.884022436,5.979313134,#650026
+5.979313134,6.077983534,#660025
+6.077983534,6.176861688,#680023
+6.176861688,6.272749067,#690022
+6.272749067,6.372039240,#520039
+6.372039240,6.468327429,#3F004C
+6.468327429,6.568033940,#30005B
+6.568033940,6.667953712,#2C005F
+6.667953712,6.761621126,#340057
+6.761621126,6.861956918,#40004B
+6.861956918,6.959262336,#4C003F
+6.959262336,7.060025550,#51003A
+7.060025550,7.157746809,#6C001F
+7.157746809,7.258942026,#680023
+7.258942026,7.360358566,#670024
+7.360358566,7.458715477,#690022
+7.458715477,7.560571080,#4F003C
+7.560571080,7.659355195,#3C004F
+7.659355195,7.761654643,#2E005D
+7.761654643,7.864181511,#330058
+7.864181511,7.956982952,#330058
+7.956982952,8.059946167,#470044
+8.059946167,8.159808045,#50003B
+8.159808045,8.263227310,#620029
+8.263227310,8.363532977,#5E002D
+8.363532977,8.467413377,#620029
+8.467413377,8.571530103,#6D001E
+8.571530103,8.672514507,#5D002E
+8.672514507,8.777100207,#50003B
+8.777100207,8.878541019,#3F004C
+8.878541019,8.983601013,#2E005D
+8.983601013,9.088904108,#340057
+9.088904108,9.184226707,#350056
+9.184226707,9.289996391,#390052
+9.289996391,9.392589537,#4A0041
+9.392589537,9.498847098,#590032
+9.498847098,9.601915112,#6C001F
+9.601915112,9.708666216,#70001B
+9.708666216,9.815670341,#720019
+9.815670341,9.919465047,#5F002C
+9.919465047,10.026971460,#4E003D
+10.026971460,10.131255111,#3E004D
+10.131255111,10.239269748,#330058
+10.239269748,10.347544974,#360055
+10.347544974,10.445567246,#350056
+10.445567246,10.554342803,#480043
+10.554342803,10.659861970,#480043
+10.659861970,10.769160938,#580033
+10.769160938,10.875189686,#6F001C
+10.875189686,10.985018408,#770014
+10.985018408,11.095118819,#690022
+11.095118819,11.201927877,#70001B
+11.201927877,11.312567842,#560035
+11.312567842,11.419902256,#360055
+11.419902256,11.531088435,#320059
+11.531088435,11.642554792,#30005B
+11.642554792,11.747084989,#380053
+11.747084989,11.859098676,#560035
+11.859098676,11.967770768,#5C002F
+11.967770768,12.080347847,#560035
+12.080347847,12.189568594,#690022
+12.189568594,12.302716203,#7A0011
+12.302716203,12.416156535,#6C001F
+12.416156535,12.526218003,#540037
+12.526218003,12.640239908,#520039
+12.640239908,12.750867804,#390052
+12.750867804,12.865478793,#360055
+12.865478793,12.980392081,#3D004E
+12.980392081,13.084446225,#3E004D
+13.084446225,13.199940403,#4B0040
+13.199940403,13.312002359,#51003A
+13.312002359,13.428104898,#640027
+13.428104898,13.540759477,#5C002F
+13.540759477,13.657478453,#680023
+13.657478453,13.774513849,#70001B
+13.774513849,13.888077212,#5C002F
+13.888077212,14.005741551,#4E003D
+14.005741551,14.119917669,#360055
+14.119917669,14.238219470,#3C004F
+14.238219470,14.356848552,#350056
+14.356848552,14.464280594,#350056
+14.464280594,14.583538864,#3F004C
+14.583538864,14.699268034,#530038
+14.699268034,14.819185665,#5F002C
+14.819185665,14.935557349,#720019
+14.935557349,15.056143531,#7C000F
+15.056143531,15.177073058,#6B0020
+15.177073058,15.294430852,#6E001D
+15.294430852,15.416043183,#51003A
+15.416043183,15.534066433,#3C004F
+15.534066433,15.656371289,#330058
+15.656371289,15.779031882,#30005B
+15.779031882,15.890130017,#3F004C
+15.890130017,16.013474857,#4A0041
+16.013474857,16.133186774,#530038
+16.133186774,16.257249179,#650026
+16.257249179,16.377660577,#630028
+16.377660577,16.502451073,#7B0010
+16.502451073,16.627615697,#670024
+16.627615697,16.749101626,#660025
+16.749101626,16.875010694,#4E003D
+16.875010694,16.997222425,#390052
+16.997222425,17.123887107,#370054
+17.123887107,17.250940156,#2D005E
+17.250940156,17.370150474,#3A0051
+17.370150474,17.497963730,#3C004F
+17.497963730,17.622032182,#560035
+17.622032182,17.750630080,#670024
+17.750630080,17.875463707,#740017
+17.875463707,18.004858400,#690022
+18.004858400,18.134662777,#720019
+18.134662777,18.260673057,#630028
+18.260673057,18.391293139,#550036
+18.391293139,18.518099032,#3E004D
+18.518099032,18.649547755,#320059
+18.649547755,18.781422655,#2F005C
+18.781422655,18.900904663,#360055
+18.900904663,19.033600301,#370054
+19.033600301,19.162430891,#51003A
+19.162430891,19.295988646,#5E002D
+19.295988646,19.425660340,#6B0020
+19.425660340,19.560094353,#850006
+19.560094353,19.694979216,#71001A
+19.694979216,19.825945802,#630028
+19.825945802,19.961728963,#470044
+19.961728963,20.093572130,#3C004F
+20.093572130,20.230268696,#320059
+20.230268696,20.367435371,#360055
+20.367435371,20.491735300,#370054
+20.491735300,20.629807973,#470044
+20.629807973,20.763885632,#4B0040
+20.763885632,20.902910905,#50003B
+20.902910905,21.037918414,#590032
+21.037918414,21.177912890,#6E001D
+21.177912890,21.318406424,#750016
+21.318406424,21.454847289,#620029
+21.454847289,21.596335956,#4C003F
+21.596335956,21.733748410,#440047
+21.733748410,21.876250022,#340057
+21.876250022,22.019273400,#370054
+22.019273400,22.148908267,#30005B
+22.148908267,22.292938008,#3C004F
+22.292938008,22.432831831,#450046
+22.432831831,22.577920869,#4C003F
+22.577920869,22.718849277,#580033
+22.718849277,22.865017305,#660025
+22.865017305,23.011741409,#6B0020
+23.011741409,23.154266946,#70001B
+23.154266946,23.302100872,#450046
+23.302100872,23.445710623,#3A0051
+23.445710623,23.594675599,#2F005C
+23.594675599,23.744223716,#30005B
+23.744223716,23.884656572,#360055
+23.884656572,24.035349736,#3B0050
+24.035349736,24.181753289,#540037
+24.181753289,24.333633319,#5C002F
+24.333633319,24.481196804,#550036
+24.481196804,24.634287349,#640027
+24.634287349,24.788002380,#770014
+24.788002380,24.937359490,#6A0021
+24.937359490,25.092322158,#570034
+25.092322158,25.242898958,#40004B
+25.242898958,25.399134891,#2E005D
+25.399134891,25.556027986,#2D005E
+25.556027986,25.698308507,#340057
+25.698308507,25.856471642,#4D003E
+25.856471642,26.010177911,#4D003E
+26.010177911,26.169681505,#5F002C
+26.169681505,26.324698793,#6B0020
+26.324698793,26.485571614,#6C001F
+26.485571614,26.647151615,#670024
+26.647151615,26.804200055,#680023
+26.804200055,26.967194577,#50003B
+26.967194577,27.125626954,#3C004F
+27.125626954,27.290067368,#30005B
+27.290067368,27.455254961,#2F005C
+27.455254961,27.605105979,#360055
+27.605105979,27.771739362,#470044
+27.771739362,27.933732837,#570034
+27.933732837,28.101894739,#60002B
+28.101894739,28.265384464,#580033
+28.265384464,28.435110427,#71001A
+28.435110427,28.605645289,#7E000D
+28.605645289,28.771458346,#6B0020
+28.771458346,28.943613431,#580033
+28.943613431,29.111013157,#3C004F
+29.111013157,29.284827506,#3B0050
+29.284827506,29.459500536,#3F004C
+29.459500536,29.618016661,#41004A
+29.618016661,29.794353650,#4A0041
+29.794353650,29.965849915,#540037
+29.965849915,30.143949556,#5E002D
+30.143949556,30.317173034,#760015
+30.317173034,30.497080048,#770014
+30.497080048,30.677923287,#740017
+30.677923287,30.853835844,#60002B
+30.853835844,31.036557421,#530038
+31.036557421,31.214311449,#390052
+31.214311449,31.398960910,#370054
+31.398960910,31.584609780,#3A0051
+31.584609780,31.759198147,#3F004C
+31.759198147,31.946820351,#4E003D
+31.946820351,32.129380574,#61002A
+32.129380574,32.319063643,#630028
+32.319063643,32.503645785,#790012
+32.503645785,32.695447261,#6E001D
+32.695447261,32.888348186,#780013
+32.888348186,33.076088290,#5B0030
+33.076088290,33.271199402,#41004A
+33.271199402,33.461109205,#480043
+33.461109205,33.658494920,#2A0061
+33.658494920,33.857062240,#320059
+33.857062240,34.037443815,#370054
+34.037443815,34.238309654,#3B0050
+34.238309654,34.433871280,#430048
+34.433871280,34.637184766,#660025
+34.637184766,34.835151384,#790012
+34.835151384,35.040988471,#6C001F
+35.040988471,35.248138372,#7B0010
+35.248138372,35.449875896,#7C000F
+35.449875896,35.659671306,#4D003E
+35.659671306,35.864010132,#420049
+35.864010132,36.076537167,#30005B
+36.076537167,36.290486860,#380053
+36.290486860,36.484974540,#320059
+36.484974540,36.701698862,#480043
+36.701698862,36.912854600,#5B0030
+36.912854600,37.132544125,#660025
+37.132544125,37.346618829,#70001B
+37.346618829,37.569377110,#760015
+37.569377110,37.793736481,#780013
+37.793736481,38.012410292,#650026
+38.012410292,38.240005923,#4D003E
+38.240005923,38.461868477,#3C004F
+38.461868477,38.692819654,#330058
+38.692819654,38.925524104,#330058
+38.925524104,39.137243722,#2A0061
+39.137243722,39.373378908,#4F003C
+39.373378908,39.603661636,#490042
+39.603661636,39.843479907,#640027
+39.843479907,40.077396948,#70001B
+40.077396948,40.321045364,#690022
+40.321045364,40.566699656,#6C001F
+40.566699656,40.806378839,#5C002F
+40.806378839,41.056103560,#420049
+41.056103560,41.299804138,#3B0050
+41.299804138,41.553772207,#2F005C
+41.553772207,41.809966817,#380053
+41.809966817,42.051692228,#3A0051
+42.051692228,42.312338333,#3F004C
+42.312338333,42.566839014,#4E003D
+42.566839014,42.832214425,#620029
+42.832214425,43.091396611,#60002B
+43.091396611,43.361721867,#780013
+43.361721867,43.634652490,#7C000F
+43.634652490,43.901319532,#740017
+43.901319532,44.179565215,#530038
+44.179565215,44.451502307,#430048
+44.451502307,44.735329612,#330058
+44.735329612,45.022102603,#340057
+45.022102603,45.283719763,#2F005C
+45.283719763,45.576316321,#3E004D
+45.576316321,45.862501602,#5B0030
+45.862501602,46.161440079,#5C002F
+46.161440079,46.453930811,#8B0000
+46.453930811,46.759566420,#71001A
+46.759566420,47.068752011,#7B0010
+47.068752011,47.371442710,#60002B
+47.371442710,47.687924841,#4B0040
+47.687924841,47.997887507,#3B0050
+47.997887507,48.322112487,#350056
+48.322112487,48.650457681,#390052
+48.650457681,48.950679806,#390052
+48.950679806,49.287241233,#470044
+49.287241233,49.617255110,#50003B
+49.617255110,49.962873489,#4D003E
+49.962873489,50.301951043,#6E001D
+50.301951043,50.657261371,#7B0010
+50.657261371,51.017763831,#7A0011
+51.017763831,51.371763364,#6B0020
+51.371763364,51.743060047,#630028
+51.743060047,52.107902579,#360055
+52.107902579,52.490839580,#31005A
+52.490839580,52.880051304,#360055
+52.880051304,53.237209485,#380053
+53.237209485,53.639106586,#41004A
+53.639106586,54.034788077,#590032
+54.034788077,54.450945134,#690022
+54.450945134,54.861049855,#690022
+54.861049855,55.292803098,#70001B
+55.292803098,55.733060594,#7B0010
+55.733060594,56.167619639,#680023
+56.167619639,56.625905443,#5C002F
+56.625905443,57.078823298,#3E004D
+57.078823298,57.557104233,#380053
+57.557104233,58.046414490,#41004A
+58.046414490,58.514723883,#3A0051
+58.514723883,59.027310233,#4F003C
+59.027310233,59.535879689,#4E003D
+59.535879689,60.075190160,#640027
+60.075190160,60.611353428,#660025
+60.611353428,61.181168081,#7F000C
+61.181168081,61.768221051,#71001A
+61.768221051,62.354035370,#730018
+62.354035370,62.979168748,#560035
+62.979168748,63.604927029,#3C004F
+63.604927029,64.274985780,#340057
+64.274985780,64.971169334,#2F005C
+64.971169334,65.624676627,#41004A
+65.624676627,66.378452480,#51003A
+66.378452480,67.141579350,#51003A
+67.141579350,67.969274076,#5B0030
+67.969274076,68.813184649,#6D001E
+68.813184649,69.736076907,#71001A
+69.736076907,70.718975206,#760015
+70.718975206,71.737469732,#650026
+71.737469732,72.873335164,#550036
+72.873335164,74.071360489,#420049
+74.071360489,75.438186566,#3C004F
+75.438186566,76.976862942,#3E004D
+76.976862942,78.569172526,#40004B
+78.569172526,80.664502728,#360055
+80.664502728,83.250314328,#360055
+83.250314328,87.224370587,#360055
+87.224370587,100.000000000,#360055
+  </script>
+
   <script>
     (() => {
       const START = new Date(1994, 0, 5, 8, 0, 0, 0);
@@ -535,6 +923,18 @@
       const SAMPLE_MS = 250;
       const WORK_START_DAY = 1;
       const WORK_END_DAY = 4;
+      const INLINE_PYRAMID_DATA_ID = "pyramidLayerData";
+      const PYRAMID_LAYER_CSV = "career_tetra_month_height_bottom_layers_with_weather.csv";
+      const PYRAMID = {
+        apexX: 50,
+        topY: 10,
+        baseY: 92,
+        leftBaseX: 8,
+        rightBaseX: 92
+      };
+      const PYRAMID_TOTAL_HEIGHT = PYRAMID.baseY - PYRAMID.topY;
+      const PYRAMID_HALF_BASE = (PYRAMID.rightBaseX - PYRAMID.leftBaseX) / 2;
+      const SVG_NS = "http://www.w3.org/2000/svg";
       const WORK_BLOCKS = [
         { startHour: 7, startMinute: 0, endHour: 12, endMinute: 0 },
         { startHour: 12, startMinute: 30, endHour: 17, endMinute: 30 }
@@ -566,6 +966,8 @@
         nowStamp: document.getElementById("nowStamp"),
         percentValue: document.getElementById("percentValue"),
         pyramidFill: document.getElementById("pyramidFill"),
+        pyramidLayers: document.getElementById("pyramidLayers"),
+        pyramidClipPath: document.getElementById("pyramidClipPath"),
         pyramidVoid: document.getElementById("pyramidVoid"),
         pyramidCutline: document.getElementById("pyramidCutline"),
         pyramidWrap: document.getElementById("leftPyramidWrap"),
@@ -702,38 +1104,211 @@
         }
       }
 
-      function setPyramidCutaway(percentLeft) {
-        const ratio = Math.max(0, Math.min(1, percentLeft / 100));
-        const apexX = 50;
-        const topY = 10;
-        const baseY = 92;
-        const leftBaseX = 8;
-        const rightBaseX = 92;
-        const halfBase = (rightBaseX - leftBaseX) / 2;
-        const totalHeight = baseY - topY;
+      function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+      }
 
-        // Similar triangles: removed_area/full_area = (removed_height/full_height)^2.
-        // We want removed_area ratio to match percentLeft ratio.
-        const cutHeightRatio = Math.sqrt(ratio);
-        const cutY = topY + totalHeight * cutHeightRatio;
-        const halfCut = halfBase * ((cutY - topY) / totalHeight);
-        const leftCutX = apexX - halfCut;
-        const rightCutX = apexX + halfCut;
+      function colorFromCsvFields(cells, idxHex, idxR, idxG, idxB) {
+        if (idxHex >= 0) {
+          const hex = (cells[idxHex] || "").trim();
+          if (/^#[0-9a-fA-F]{6}$/.test(hex)) {
+            return hex;
+          }
+        }
+
+        const r = idxR >= 0 ? Number.parseInt(cells[idxR], 10) : Number.NaN;
+        const g = idxG >= 0 ? Number.parseInt(cells[idxG], 10) : Number.NaN;
+        const b = idxB >= 0 ? Number.parseInt(cells[idxB], 10) : Number.NaN;
+        if (Number.isFinite(r) && Number.isFinite(g) && Number.isFinite(b)) {
+          return (
+            "#" +
+            clamp(r, 0, 255).toString(16).padStart(2, "0") +
+            clamp(g, 0, 255).toString(16).padStart(2, "0") +
+            clamp(b, 0, 255).toString(16).padStart(2, "0")
+          ).toUpperCase();
+        }
+
+        return "#5B2F66";
+      }
+
+      function parsePyramidLayerCsv(csvText) {
+        const lines = csvText.split(/\r?\n/).filter((line) => line.trim());
+        if (lines.length < 2) {
+          return [];
+        }
+
+        const headers = lines[0].split(",");
+        const col = (name) => headers.indexOf(name);
+        const idxLayer = col("bottom_layer_index");
+        const idxMonth = col("month_label");
+        const idxStart = col("height_start_pct_from_bottom");
+        const idxEnd = col("height_end_pct_from_bottom");
+        const idxHex = col("color_hex");
+        const idxR = col("color_r");
+        const idxG = col("color_g");
+        const idxB = col("color_b");
+
+        if (idxStart < 0 || idxEnd < 0) {
+          return [];
+        }
+
+        const rows = [];
+        for (let i = 1; i < lines.length; i += 1) {
+          const cells = lines[i].split(",");
+          const startPct = Number.parseFloat(cells[idxStart] || "");
+          const endPct = Number.parseFloat(cells[idxEnd] || "");
+          if (!Number.isFinite(startPct) || !Number.isFinite(endPct) || endPct <= startPct) {
+            continue;
+          }
+
+          const color = colorFromCsvFields(cells, idxHex, idxR, idxG, idxB);
+          const layerIndex = idxLayer >= 0 ? Number.parseInt(cells[idxLayer], 10) : i;
+          rows.push({
+            layerIndex: Number.isFinite(layerIndex) ? layerIndex : i,
+            monthLabel: idxMonth >= 0 ? (cells[idxMonth] || "").trim() : "",
+            startPct: clamp(startPct, 0, 100),
+            endPct: clamp(endPct, 0, 100),
+            color
+          });
+        }
+
+        rows.sort((a, b) => a.layerIndex - b.layerIndex);
+        return rows;
+      }
+
+      function parseCompactPyramidLayerData(text) {
+        const lines = text.split(/\r?\n/).filter((line) => line.trim());
+        if (!lines.length) {
+          return [];
+        }
+
+        const rows = [];
+        for (let i = 0; i < lines.length; i += 1) {
+          const cells = lines[i].split(",");
+          if (cells.length < 3) {
+            continue;
+          }
+
+          const startPct = Number.parseFloat(cells[0]);
+          const endPct = Number.parseFloat(cells[1]);
+          const color = (cells[2] || "").trim();
+          if (!Number.isFinite(startPct) || !Number.isFinite(endPct) || endPct <= startPct) {
+            continue;
+          }
+
+          rows.push({
+            layerIndex: i + 1,
+            monthLabel: "",
+            startPct: clamp(startPct, 0, 100),
+            endPct: clamp(endPct, 0, 100),
+            color: /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#5B2F66"
+          });
+        }
+
+        return rows;
+      }
+
+      function yFromBottomPct(heightPctFromBottom) {
+        const pct = clamp(heightPctFromBottom, 0, 100);
+        return PYRAMID.baseY - (pct / 100) * PYRAMID_TOTAL_HEIGHT;
+      }
+
+      function xBoundsAtY(y) {
+        const ratioFromTop = clamp((y - PYRAMID.topY) / PYRAMID_TOTAL_HEIGHT, 0, 1);
+        const halfWidth = PYRAMID_HALF_BASE * ratioFromTop;
+        return {
+          left: PYRAMID.apexX - halfWidth,
+          right: PYRAMID.apexX + halfWidth
+        };
+      }
+
+      function layerBandPath(startPct, endPct) {
+        const yBottom = yFromBottomPct(startPct);
+        const yTop = yFromBottomPct(endPct);
+        const bottom = xBoundsAtY(yBottom);
+        const top = xBoundsAtY(yTop);
+
+        return (
+          "M " + bottom.left.toFixed(3) + " " + yBottom.toFixed(3) +
+          " L " + bottom.right.toFixed(3) + " " + yBottom.toFixed(3) +
+          " L " + top.right.toFixed(3) + " " + yTop.toFixed(3) +
+          " L " + top.left.toFixed(3) + " " + yTop.toFixed(3) + " Z"
+        );
+      }
+
+      function renderPyramidLayers(rows) {
+        if (!ui.pyramidLayers) {
+          return;
+        }
+
+        const frag = document.createDocumentFragment();
+        for (const row of rows) {
+          const band = document.createElementNS(SVG_NS, "path");
+          band.setAttribute("class", "pyramid-layer");
+          band.setAttribute("d", layerBandPath(row.startPct, row.endPct));
+          band.setAttribute("fill", row.color);
+          if (row.monthLabel) {
+            band.setAttribute("data-month", row.monthLabel);
+          }
+          frag.appendChild(band);
+        }
+
+        ui.pyramidLayers.replaceChildren(frag);
+        setAttr(ui.pyramidFill, "pyramid-fill-opacity", "opacity", rows.length ? "0" : "0.96");
+      }
+
+      async function loadPyramidLayers() {
+        const inlineDataNode = document.getElementById(INLINE_PYRAMID_DATA_ID);
+        if (inlineDataNode) {
+          const inlineRows = parseCompactPyramidLayerData(inlineDataNode.textContent || "");
+          if (inlineRows.length) {
+            renderPyramidLayers(inlineRows);
+            return;
+          }
+        }
+
+        try {
+          const response = await fetch(PYRAMID_LAYER_CSV, { cache: "no-store" });
+          if (!response.ok) {
+            throw new Error("Layer CSV fetch failed");
+          }
+          const csvText = await response.text();
+          const rows = parsePyramidLayerCsv(csvText);
+          if (rows.length) {
+            renderPyramidLayers(rows);
+          }
+        } catch (error) {
+          if (ui.pyramidLayers) {
+            ui.pyramidLayers.replaceChildren();
+          }
+          setAttr(ui.pyramidFill, "pyramid-fill-opacity", "opacity", "0.96");
+        }
+      }
+
+      function setPyramidCutaway(percentLeft) {
+        const ratio = clamp(percentLeft / 100, 0, 1);
+        // Tetrahedrons scale by the cube of linear size; cube-root maps volume ratio to height ratio.
+        const cutHeightRatio = Math.cbrt(ratio);
+        const cutY = PYRAMID.topY + PYRAMID_TOTAL_HEIGHT * cutHeightRatio;
+        const halfCut = PYRAMID_HALF_BASE * ((cutY - PYRAMID.topY) / PYRAMID_TOTAL_HEIGHT);
+        const leftCutX = PYRAMID.apexX - halfCut;
+        const rightCutX = PYRAMID.apexX + halfCut;
 
         const fillPath =
           "M " + leftCutX.toFixed(3) + " " + cutY.toFixed(3) +
           " L " + rightCutX.toFixed(3) + " " + cutY.toFixed(3) +
-          " L " + rightBaseX + " " + baseY +
-          " L " + leftBaseX + " " + baseY + " Z";
+          " L " + PYRAMID.rightBaseX + " " + PYRAMID.baseY +
+          " L " + PYRAMID.leftBaseX + " " + PYRAMID.baseY + " Z";
         const cutlinePath =
           "M " + leftCutX.toFixed(3) + " " + cutY.toFixed(3) +
           " L " + rightCutX.toFixed(3) + " " + cutY.toFixed(3);
         const voidPath =
-          "M " + apexX + " " + topY +
+          "M " + PYRAMID.apexX + " " + PYRAMID.topY +
           " L " + rightCutX.toFixed(3) + " " + cutY.toFixed(3) +
           " L " + leftCutX.toFixed(3) + " " + cutY.toFixed(3) + " Z";
 
         setAttr(ui.pyramidFill, "pyramid-fill-path", "d", fillPath);
+        setAttr(ui.pyramidClipPath, "pyramid-clip-path", "d", fillPath);
         setAttr(ui.pyramidVoid, "pyramid-void-path", "d", voidPath);
         setAttr(ui.pyramidCutline, "pyramid-cutline-path", "d", cutlinePath);
         setAttr(ui.pyramidWrap, "pyramid-aria-valuenow", "aria-valuenow", percentLeft.toFixed(6));
@@ -940,6 +1515,7 @@
 
       window.addEventListener("resize", resizeCanvas);
       resizeCanvas();
+      loadPyramidLayers();
       render();
       startLoop();
 
