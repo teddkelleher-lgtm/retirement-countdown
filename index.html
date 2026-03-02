@@ -165,29 +165,6 @@
       animation: titleFlicker 5s ease-in-out infinite;
     }
 
-    .title-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .version-tag {
-      margin: 0;
-      padding: 2px 10px 3px;
-      border-radius: 999px;
-      font-family: "Orbitron", "Sora", sans-serif;
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: #fff9ed;
-      border: 1px solid rgba(255, 239, 196, 0.8);
-      background: linear-gradient(90deg, rgba(255, 157, 77, 0.85), rgba(255, 94, 182, 0.8));
-      box-shadow: 0 0 14px rgba(255, 160, 82, 0.35);
-    }
-
     @keyframes titleFlicker {
       0%, 18%, 100% { opacity: 1; filter: drop-shadow(0 0 6px rgba(255, 209, 102, 0.36)); }
       20% { opacity: 0.93; }
@@ -246,9 +223,9 @@
     }
 
     .pyramid-shell {
-      width: 82px;
-      min-width: 82px;
-      aspect-ratio: 1 / 1.06;
+      width: 84px;
+      min-width: 84px;
+      aspect-ratio: 1 / 2.1;
       border-radius: 10px;
       padding: 2px;
       background: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.18), transparent 70%);
@@ -403,10 +380,7 @@
   <canvas id="fxCanvas" aria-hidden="true"></canvas>
   <main class="shell">
     <section class="panel">
-      <div class="title-row">
-        <h1 class="title">Countdown to Next</h1>
-        <p class="version-tag">v1</p>
-      </div>
+      <h1 class="title">Countdown to Next</h1>
       <p class="subtitle">Career span: Jan 5, 1994 8:00 AM to Jun 25, 2026 5:30 PM</p>
       <p class="clock">System time: <span id="nowStamp">--</span></p>
 
@@ -417,7 +391,7 @@
         </div>
         <div class="percent-viz">
           <div class="pyramid-shell" role="progressbar" aria-label="Career time left in pyramid form" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="leftPyramidWrap">
-            <svg class="pyramid-svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+            <svg class="pyramid-svg" viewBox="0 0 100 200" preserveAspectRatio="xMidYMid meet">
               <defs>
                 <linearGradient id="pyramidFillGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" stop-color="#ffcf63"></stop>
@@ -428,7 +402,7 @@
               <path class="pyramid-fill" id="pyramidFill" d=""></path>
               <path class="pyramid-void" id="pyramidVoid" d=""></path>
               <path class="pyramid-cutline" id="pyramidCutline" d=""></path>
-              <path class="pyramid-outline" d="M 50 6 L 92 92 L 8 92 Z"></path>
+              <path class="pyramid-outline" d="M 50 12 L 92 184 L 8 184 Z"></path>
             </svg>
           </div>
           <p class="pyramid-note">Missing tip area equals remaining career time.</p>
@@ -460,7 +434,7 @@
           <p class="metric-name">Minutes Left</p>
           <p class="metric-value" id="minutes">--</p>
         </article>
-        <article class="metric wide">
+        <article class="metric">
           <p class="metric-name">Seconds Left</p>
           <p class="metric-value" id="seconds">--</p>
         </article>
@@ -603,8 +577,8 @@
       function setPyramidCutaway(percentLeft) {
         const ratio = Math.max(0, Math.min(1, percentLeft / 100));
         const apexX = 50;
-        const topY = 6;
-        const baseY = 92;
+        const topY = 12;
+        const baseY = 184;
         const leftBaseX = 8;
         const rightBaseX = 92;
         const halfBase = (rightBaseX - leftBaseX) / 2;
