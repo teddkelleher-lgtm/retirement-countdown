@@ -3,10 +3,6 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#5e1a3f">
-  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#2a0f2b">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Countdown to Next</title>
   <style>
     @import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Sora:wght@400;600;700&display=swap");
@@ -55,7 +51,6 @@
         radial-gradient(90% 100% at 48% 110%, rgba(184, 255, 88, 0.35) 0%, transparent 68%),
         linear-gradient(145deg, var(--bg-1) 5%, var(--bg-2) 55%, var(--bg-3));
       animation: hueWalk 24s ease-in-out infinite alternate;
-      overflow: hidden;
     }
 
     body::before {
@@ -408,15 +403,20 @@
         background: transparent;
         box-shadow: none;
         backdrop-filter: none;
-        padding:
-          calc(6px + env(safe-area-inset-top))
-          10px
-          calc(6px + env(safe-area-inset-bottom));
+        padding: 0 10px;
       }
 
       .panel::before,
       .panel::after {
         display: none;
+      }
+
+      .title {
+        margin-top: calc(4px + env(safe-area-inset-top));
+      }
+
+      .footnote {
+        padding-bottom: calc(6px + env(safe-area-inset-bottom));
       }
     }
   </style>
