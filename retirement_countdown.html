@@ -23,6 +23,12 @@
       --glass-edge: rgba(255, 206, 120, 0.4);
       --card-face: rgba(73, 25, 70, 0.66);
       --card-edge: rgba(255, 190, 119, 0.42);
+      --sky-top: rgba(88, 30, 76, 0.72);
+      --sky-bottom: rgba(66, 23, 61, 0.66);
+      --sky-cloud-rgb: 235, 240, 248;
+      --sky-cloud-opacity: 0.16;
+      --sky-cloud-soft: 8px;
+      --sky-star-opacity: 0;
     }
 
     * {
@@ -95,6 +101,11 @@
     @keyframes gridDrift {
       from { transform: perspective(640px) rotateX(62deg) translateY(28%) translateX(0); }
       to { transform: perspective(640px) rotateX(62deg) translateY(28%) translateX(-34px); }
+    }
+
+    @keyframes skyCloudDrift {
+      from { transform: translate3d(0, 0, 0) scale(1.08); }
+      to { transform: translate3d(-36px, -6px, 0) scale(1.12); }
     }
 
     #fxCanvas {
@@ -198,11 +209,54 @@
       padding: 9px 10px 10px;
       border-radius: 15px;
       background:
-        linear-gradient(rgba(88, 30, 76, 0.6), rgba(66, 23, 61, 0.56)) padding-box,
+        linear-gradient(180deg, var(--sky-top), var(--sky-bottom)) padding-box,
         linear-gradient(125deg, rgba(255, 94, 182, 0.56), rgba(255, 157, 77, 0.6), rgba(184, 255, 88, 0.46)) border-box;
       border: 1px solid transparent;
       display: flex;
       flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .percent-box::before {
+      content: "";
+      position: absolute;
+      inset: -8%;
+      background:
+        radial-gradient(58% 33% at 12% 23%, rgba(var(--sky-cloud-rgb), 0.42) 0%, rgba(var(--sky-cloud-rgb), 0.08) 56%, transparent 75%),
+        radial-gradient(50% 31% at 73% 21%, rgba(var(--sky-cloud-rgb), 0.34) 0%, rgba(var(--sky-cloud-rgb), 0.06) 52%, transparent 74%),
+        radial-gradient(64% 35% at 44% 66%, rgba(var(--sky-cloud-rgb), 0.3) 0%, rgba(var(--sky-cloud-rgb), 0.04) 58%, transparent 78%),
+        radial-gradient(42% 26% at 84% 72%, rgba(var(--sky-cloud-rgb), 0.28) 0%, rgba(var(--sky-cloud-rgb), 0.03) 54%, transparent 76%),
+        linear-gradient(180deg, rgba(var(--sky-cloud-rgb), 0.1), transparent 56%);
+      mix-blend-mode: screen;
+      opacity: var(--sky-cloud-opacity);
+      filter: blur(var(--sky-cloud-soft));
+      animation: skyCloudDrift 72s linear infinite;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .percent-box::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 14% 20%, rgba(255, 255, 255, 0.95) 0 1px, transparent 1.4px),
+        radial-gradient(circle at 37% 14%, rgba(255, 255, 255, 0.92) 0 1px, transparent 1.5px),
+        radial-gradient(circle at 62% 26%, rgba(255, 255, 255, 0.9) 0 1px, transparent 1.4px),
+        radial-gradient(circle at 82% 18%, rgba(255, 255, 255, 0.9) 0 1px, transparent 1.5px),
+        radial-gradient(circle at 26% 42%, rgba(255, 255, 255, 0.82) 0 1px, transparent 1.4px),
+        radial-gradient(circle at 71% 38%, rgba(255, 255, 255, 0.86) 0 1px, transparent 1.4px),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.07), transparent 50%);
+      opacity: var(--sky-star-opacity);
+      z-index: 0;
+      pointer-events: none;
+      mix-blend-mode: screen;
+    }
+
+    .percent-box > * {
+      position: relative;
+      z-index: 1;
     }
 
     .percent-row {
@@ -476,7 +530,7 @@
       <h1 class="title">Countdown to Next</h1>
       <p class="subtitle">Career span: Jan 5, 1994 8:00 AM to Jun 25, 2026 5:30 PM</p>
 
-      <section class="percent-box" aria-label="Career time percentage left">
+      <section class="percent-box" id="percentBox" aria-label="Career time percentage left">
         <div class="percent-row">
           <span class="percent-label">Career Time Left</span>
           <span class="percent-value" id="percentValue">--</span>
@@ -935,6 +989,8 @@
       const END_MS = END.getTime();
       const TOTAL_MS = END_MS - START.getTime();
       const SAMPLE_MS = 250;
+      const OLYMPIA_SKY_URL = "https://api.open-meteo.com/v1/forecast?latitude=47.0379&longitude=-122.9007&current=is_day,cloud_cover,weather_code,precipitation&timezone=America%2FLos_Angeles";
+      const SKY_REFRESH_MS = 15 * 60 * 1000;
       const WORK_START_DAY = 1;
       const WORK_END_DAY = 4;
       const INLINE_PYRAMID_DATA_ID = "pyramidLayerData";
@@ -994,6 +1050,7 @@
       const percentDecimals = 6;
       const numberFmt = new Intl.NumberFormat();
       const ui = {
+        percentBox: document.getElementById("percentBox"),
         percentValue: document.getElementById("percentValue"),
         tetraCanvas: document.getElementById("tetraCanvas"),
         pyramidWrap: document.getElementById("leftPyramidWrap"),
@@ -1030,6 +1087,120 @@
       const tetraCtx = ui.tetraCanvas ? ui.tetraCanvas.getContext("2d") : null;
       let tetraDpr = 1;
       let tetraRaf = 0;
+
+      function mixRgb(rgbA, rgbB, t) {
+        const clamped = clamp(t, 0, 1);
+        return {
+          r: Math.round(rgbA.r + (rgbB.r - rgbA.r) * clamped),
+          g: Math.round(rgbA.g + (rgbB.g - rgbA.g) * clamped),
+          b: Math.round(rgbA.b + (rgbB.b - rgbA.b) * clamped)
+        };
+      }
+
+      function rgbToCss(rgb) {
+        return "rgb(" + rgb.r + ", " + rgb.g + ", " + rgb.b + ")";
+      }
+
+      function rgbToVar(rgb) {
+        return rgb.r + ", " + rgb.g + ", " + rgb.b;
+      }
+
+      function deriveSkyTheme(current, now) {
+        const hour = now.getHours() + now.getMinutes() / 60;
+        const cloudCoverRaw = Number(current && current.cloud_cover);
+        const cloudCover = Number.isFinite(cloudCoverRaw) ? clamp(cloudCoverRaw, 0, 100) : 55;
+        const weatherCode = Number(current && current.weather_code);
+        const precipitation = Number(current && current.precipitation);
+        const fetchedIsDay = Number(current && current.is_day);
+        const isDay = Number.isFinite(fetchedIsDay) ? fetchedIsDay === 1 : hour >= 6 && hour < 20;
+        const cloudyRatio = cloudCover / 100;
+        const isRainy = ((weatherCode >= 51 && weatherCode <= 99) || precipitation > 0.2);
+        const isFoggy = weatherCode === 45 || weatherCode === 48;
+
+        if (isDay) {
+          const clearTop = { r: 74, g: 165, b: 242 };
+          const clearBottom = { r: 194, g: 229, b: 255 };
+          const overcastTop = { r: 134, g: 143, b: 151 };
+          const overcastBottom = { r: 181, g: 188, b: 195 };
+          let top = mixRgb(clearTop, overcastTop, cloudyRatio);
+          let bottom = mixRgb(clearBottom, overcastBottom, cloudyRatio);
+
+          const sunriseBlend = hour >= 5 && hour < 8 ? (8 - hour) / 3 : 0;
+          const sunsetBlend = hour >= 17 && hour < 20 ? (hour - 17) / 3 : 0;
+          const twilightBlend = clamp(Math.max(sunriseBlend, sunsetBlend), 0, 1);
+          if (twilightBlend > 0) {
+            top = mixRgb(top, { r: 228, g: 136, b: 108 }, twilightBlend * 0.34);
+            bottom = mixRgb(bottom, { r: 246, g: 184, b: 136 }, twilightBlend * 0.38);
+          }
+
+          if (isRainy) {
+            top = mixRgb(top, { r: 105, g: 117, b: 131 }, 0.42);
+            bottom = mixRgb(bottom, { r: 146, g: 155, b: 166 }, 0.36);
+          }
+          if (isFoggy) {
+            top = mixRgb(top, { r: 168, g: 173, b: 179 }, 0.52);
+            bottom = mixRgb(bottom, { r: 194, g: 198, b: 203 }, 0.46);
+          }
+
+          const cloudTone = mixRgb({ r: 255, g: 255, b: 255 }, top, 0.42 + cloudyRatio * 0.3);
+          return {
+            skyTop: rgbToCss(top),
+            skyBottom: rgbToCss(bottom),
+            cloudRgb: rgbToVar(cloudTone),
+            cloudOpacity: clamp(0.12 + cloudyRatio * 0.36 + (isRainy ? 0.08 : 0), 0.1, 0.58),
+            cloudSoft: 6 + cloudyRatio * 8 + (isFoggy ? 6 : 0),
+            starOpacity: 0
+          };
+        }
+
+        const clearTop = { r: 7, g: 18, b: 44 };
+        const clearBottom = { r: 21, g: 34, b: 69 };
+        const cloudyTop = { r: 34, g: 44, b: 60 };
+        const cloudyBottom = { r: 56, g: 66, b: 82 };
+        let top = mixRgb(clearTop, cloudyTop, cloudyRatio);
+        let bottom = mixRgb(clearBottom, cloudyBottom, cloudyRatio);
+        if (isRainy) {
+          top = mixRgb(top, { r: 25, g: 33, b: 46 }, 0.45);
+          bottom = mixRgb(bottom, { r: 43, g: 52, b: 65 }, 0.42);
+        }
+        const cloudTone = mixRgb({ r: 220, g: 228, b: 244 }, top, 0.54);
+        return {
+          skyTop: rgbToCss(top),
+          skyBottom: rgbToCss(bottom),
+          cloudRgb: rgbToVar(cloudTone),
+          cloudOpacity: clamp(0.1 + cloudyRatio * 0.29 + (isRainy ? 0.06 : 0), 0.1, 0.52),
+          cloudSoft: 10 + cloudyRatio * 10,
+          starOpacity: clamp((1 - cloudyRatio) * 0.58, 0.06, 0.58)
+        };
+      }
+
+      function applySkyTheme(theme) {
+        if (!ui.percentBox) {
+          return;
+        }
+        ui.percentBox.style.setProperty("--sky-top", theme.skyTop);
+        ui.percentBox.style.setProperty("--sky-bottom", theme.skyBottom);
+        ui.percentBox.style.setProperty("--sky-cloud-rgb", theme.cloudRgb);
+        ui.percentBox.style.setProperty("--sky-cloud-opacity", theme.cloudOpacity.toFixed(3));
+        ui.percentBox.style.setProperty("--sky-cloud-soft", theme.cloudSoft.toFixed(1) + "px");
+        ui.percentBox.style.setProperty("--sky-star-opacity", theme.starOpacity.toFixed(3));
+      }
+
+      async function refreshOlympiaSky() {
+        const fallbackTheme = deriveSkyTheme(null, new Date());
+        applySkyTheme(fallbackTheme);
+        try {
+          const response = await fetch(OLYMPIA_SKY_URL, { cache: "no-store" });
+          if (!response.ok) {
+            return;
+          }
+          const payload = await response.json();
+          const current = payload && payload.current ? payload.current : null;
+          applySkyTheme(deriveSkyTheme(current, new Date()));
+        } catch (error) {
+          // Keep fallback theme when live weather isn't reachable.
+        }
+      }
 
       function buildMemorableThresholds(maxValue, options) {
         const min = options.min ?? 1;
@@ -1725,6 +1896,8 @@
       resizeCanvas();
       resizeTetraCanvas();
       loadPyramidLayers();
+      refreshOlympiaSky();
+      window.setInterval(refreshOlympiaSky, SKY_REFRESH_MS);
       render();
       startLoop();
       tetraRaf = requestAnimationFrame(tetraLoop);
