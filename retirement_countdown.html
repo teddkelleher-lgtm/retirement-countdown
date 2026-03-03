@@ -601,6 +601,56 @@
       }
 
     }
+
+    /* iPhone 16 Pro: force content to paint into top/bottom safe-area chrome zones */
+    @media (max-width: 430px) and (pointer: coarse) {
+      html,
+      body {
+        margin: 0 !important;
+        min-height: 100% !important;
+        overflow-x: hidden !important;
+      }
+
+      body {
+        padding: 0 !important;
+      }
+
+      .shell {
+        width: 100% !important;
+        max-width: none !important;
+        margin-top: calc(-1 * env(safe-area-inset-top)) !important;
+        margin-bottom: calc(-1 * env(safe-area-inset-bottom)) !important;
+        min-height: calc(100svh + env(safe-area-inset-top) + env(safe-area-inset-bottom)) !important;
+        min-height: calc(100dvh + env(safe-area-inset-top) + env(safe-area-inset-bottom)) !important;
+        min-height: calc(100lvh + env(safe-area-inset-top) + env(safe-area-inset-bottom)) !important;
+        padding: 0 !important;
+      }
+
+      .panel {
+        min-height: calc(100svh + env(safe-area-inset-top) + env(safe-area-inset-bottom)) !important;
+        min-height: calc(100dvh + env(safe-area-inset-top) + env(safe-area-inset-bottom)) !important;
+        min-height: calc(100lvh + env(safe-area-inset-top) + env(safe-area-inset-bottom)) !important;
+        border-radius: 0 !important;
+        border: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        padding: env(safe-area-inset-top) 10px env(safe-area-inset-bottom) !important;
+      }
+
+      .panel::before,
+      .panel::after {
+        display: none !important;
+      }
+
+      .title {
+        margin-top: 0 !important;
+      }
+
+      .help-wrap {
+        bottom: calc(8px + env(safe-area-inset-bottom)) !important;
+      }
+    }
   </style>
 </head>
 <body>
