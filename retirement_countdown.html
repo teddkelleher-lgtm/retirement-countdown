@@ -547,21 +547,30 @@
 
     /* iPhone Safari full-bleed: content runs under browser chrome */
     @supports (-webkit-touch-callout: none) {
+      html,
+      body {
+        min-height: 100lvh;
+      }
+
+      body {
+        min-height: 100lvh;
+      }
+
       .shell {
         width: 100%;
         max-width: none;
+        min-height: 100lvh;
         padding: 0;
       }
 
       .panel {
-        min-height: 100svh;
-        min-height: 100dvh;
+        min-height: 100lvh;
         border-radius: 0;
         border: 0;
         background: transparent;
         box-shadow: none;
         backdrop-filter: none;
-        padding: 0 10px;
+        padding: 0 10px 0;
       }
 
       .panel::before,
@@ -570,7 +579,11 @@
       }
 
       .title {
-        margin-top: calc(4px + env(safe-area-inset-top));
+        margin-top: 2px;
+      }
+
+      .help-wrap {
+        bottom: 8px;
       }
 
     }
@@ -1921,47 +1934,50 @@
           }
           const depthSpan = Math.max(epsilon, 1 - cap);
           const shade = clamp(face.shade, 0.2, 1.5);
-          const sliceCount = 72;
-          let prevT = cap;
-          let prevA = topA;
-          let prevB = topB;
-          for (let sliceIndex = 1; sliceIndex <= sliceCount; sliceIndex += 1) {
-            const nextT = cap + depthSpan * (sliceIndex / sliceCount);
-            const nextA3 = lerp3(face.apex3, face.edgeA3, nextT);
-            const nextB3 = lerp3(face.apex3, face.edgeB3, nextT);
-            const nextA = projectWorldVertex(nextA3, face.width, face.height, face.focalLength);
-            const nextB = projectWorldVertex(nextB3, face.width, face.height, face.focalLength);
-            if (!nextA || !nextB) {
+          const sliceCount = 44;
+          const sliceStep = depthSpan / sliceCount;
+          const overlapT = sliceStep * 0.42;
+          for (let sliceIndex = 0; sliceIndex < sliceCount; sliceIndex += 1) {
+            const baseTopT = cap + depthSpan * (sliceIndex / sliceCount);
+            const baseBottomT = cap + depthSpan * ((sliceIndex + 1) / sliceCount);
+            const drawTopT = sliceIndex === 0 ? baseTopT : Math.max(cap, baseTopT - overlapT);
+            const drawBottomT = sliceIndex === sliceCount - 1 ? baseBottomT : Math.min(1, baseBottomT + overlapT);
+
+            const topA3Slice = lerp3(face.apex3, face.edgeA3, drawTopT);
+            const topB3Slice = lerp3(face.apex3, face.edgeB3, drawTopT);
+            const bottomA3Slice = lerp3(face.apex3, face.edgeA3, drawBottomT);
+            const bottomB3Slice = lerp3(face.apex3, face.edgeB3, drawBottomT);
+            const topASlice = projectWorldVertex(topA3Slice, face.width, face.height, face.focalLength);
+            const topBSlice = projectWorldVertex(topB3Slice, face.width, face.height, face.focalLength);
+            const bottomASlice = projectWorldVertex(bottomA3Slice, face.width, face.height, face.focalLength);
+            const bottomBSlice = projectWorldVertex(bottomB3Slice, face.width, face.height, face.focalLength);
+            if (!topASlice || !topBSlice || !bottomASlice || !bottomBSlice) {
               continue;
             }
 
-            const midT = (prevT + nextT) * 0.5;
+            const midT = (baseTopT + baseBottomT) * 0.5;
             const rgb = sampleTetraColor(midT);
             ctx.fillStyle =
               "rgba(" +
               Math.round(clamp(rgb.r * shade, 0, 255)) + "," +
               Math.round(clamp(rgb.g * shade, 0, 255)) + "," +
               Math.round(clamp(rgb.b * shade, 0, 255)) + "," +
-              "0.915)";
+              "0.985)";
 
             ctx.beginPath();
-            ctx.moveTo(prevA.x, prevA.y);
-            ctx.lineTo(prevB.x, prevB.y);
-            ctx.lineTo(nextB.x, nextB.y);
-            ctx.lineTo(nextA.x, nextA.y);
+            ctx.moveTo(topASlice.x, topASlice.y);
+            ctx.lineTo(topBSlice.x, topBSlice.y);
+            ctx.lineTo(bottomBSlice.x, bottomBSlice.y);
+            ctx.lineTo(bottomASlice.x, bottomASlice.y);
             ctx.closePath();
             ctx.fill();
-
-            prevT = nextT;
-            prevA = nextA;
-            prevB = nextB;
           }
 
           const topMid = { x: (topA.x + topB.x) * 0.5, y: (topA.y + topB.y) * 0.5 };
           const baseMid = { x: (face.edgeA2.x + face.edgeB2.x) * 0.5, y: (face.edgeA2.y + face.edgeB2.y) * 0.5 };
           const faceSheen = ctx.createLinearGradient(topMid.x, topMid.y, baseMid.x, baseMid.y);
-          faceSheen.addColorStop(0, "rgba(255, 255, 255, 0.038)");
-          faceSheen.addColorStop(1, "rgba(12, 3, 28, 0.055)");
+          faceSheen.addColorStop(0, "rgba(255, 255, 255, 0.02)");
+          faceSheen.addColorStop(1, "rgba(12, 3, 28, 0.04)");
           ctx.beginPath();
           ctx.moveTo(topA.x, topA.y);
           ctx.lineTo(topB.x, topB.y);
