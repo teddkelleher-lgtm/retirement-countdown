@@ -1893,8 +1893,8 @@
             continue;
           }
           const isPast = markerT >= cap;
-          const alpha = isPast ? 0.82 : 0.2;
-          const radius = isPast ? 0.58 : 0.42;
+          const alpha = isPast ? 0.66 : 0.16;
+          const radius = isPast ? 0.28 : 0.2;
 
           ctx.beginPath();
           ctx.fillStyle = "rgba(250, 252, 255, " + alpha.toFixed(3) + ")";
@@ -1978,6 +1978,7 @@
           const h1 = projectWorldVertex(h13, face.width, face.height, face.focalLength);
           const h2 = projectWorldVertex(h23, face.width, face.height, face.focalLength);
           if (!h1 || !h2) {
+            drawCornerMonthDots(ctx, face, cap);
             return;
           }
           const midX = (h1.x + h2.x + face.apex2.x) / 3;
@@ -2025,6 +2026,8 @@
           ctx.fill();
           ctx.restore();
         }
+
+        drawCornerMonthDots(ctx, face, cap);
       }
 
       function drawCapPlane(ctx, rotatedVertices, width, height, focalLength, capHeightRatio) {
