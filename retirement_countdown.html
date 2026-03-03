@@ -1921,44 +1921,66 @@
           }
           const depthSpan = Math.max(epsilon, 1 - cap);
           const shade = clamp(face.shade, 0.2, 1.5);
-          const sliceCount = 72;
-          let prevT = cap;
-          let prevA = topA;
-          let prevB = topB;
-          for (let sliceIndex = 1; sliceIndex <= sliceCount; sliceIndex += 1) {
-            const nextT = cap + depthSpan * (sliceIndex / sliceCount);
-            const nextA3 = lerp3(face.apex3, face.edgeA3, nextT);
-            const nextB3 = lerp3(face.apex3, face.edgeB3, nextT);
-            const nextA = projectWorldVertex(nextA3, face.width, face.height, face.focalLength);
-            const nextB = projectWorldVertex(nextB3, face.width, face.height, face.focalLength);
-            if (!nextA || !nextB) {
+          const topMid = { x: (topA.x + topB.x) * 0.5, y: (topA.y + topB.y) * 0.5 };
+          const baseMid = { x: (face.edgeA2.x + face.edgeB2.x) * 0.5, y: (face.edgeA2.y + face.edgeB2.y) * 0.5 };
+          const axisX = baseMid.x - topMid.x;
+          const axisY = baseMid.y - topMid.y;
+          const axisLen2 = Math.max(1e-6, axisX * axisX + axisY * axisY);
+          const bandCount = 84;
+          const faceFill = ctx.createLinearGradient(topMid.x, topMid.y, baseMid.x, baseMid.y);
+          let prevStop = 0;
+
+          for (let bandIndex = 0; bandIndex < bandCount; bandIndex += 1) {
+            const t0 = cap + depthSpan * (bandIndex / bandCount);
+            const t1 = cap + depthSpan * ((bandIndex + 1) / bandCount);
+            const m03 = lerp3(
+              lerp3(face.apex3, face.edgeA3, t0),
+              lerp3(face.apex3, face.edgeB3, t0),
+              0.5
+            );
+            const m13 = lerp3(
+              lerp3(face.apex3, face.edgeA3, t1),
+              lerp3(face.apex3, face.edgeB3, t1),
+              0.5
+            );
+            const m0 = projectWorldVertex(m03, face.width, face.height, face.focalLength);
+            const m1 = projectWorldVertex(m13, face.width, face.height, face.focalLength);
+            if (!m0 || !m1) {
               continue;
             }
+            let s0 = bandIndex === 0
+              ? 0
+              : clamp(((m0.x - topMid.x) * axisX + (m0.y - topMid.y) * axisY) / axisLen2, 0, 1);
+            let s1 = bandIndex === bandCount - 1
+              ? 1
+              : clamp(((m1.x - topMid.x) * axisX + (m1.y - topMid.y) * axisY) / axisLen2, 0, 1);
+            s0 = Math.max(prevStop, s0);
+            s1 = Math.max(s0 + 0.0009, s1);
+            s1 = Math.min(1, s1);
 
-            const midT = (prevT + nextT) * 0.5;
+            const midT = (t0 + t1) * 0.5;
             const rgb = sampleTetraColor(midT);
-            ctx.fillStyle =
+            const color =
               "rgba(" +
               Math.round(clamp(rgb.r * shade, 0, 255)) + "," +
               Math.round(clamp(rgb.g * shade, 0, 255)) + "," +
               Math.round(clamp(rgb.b * shade, 0, 255)) + "," +
-              "0.915)";
+              "0.935)";
 
-            ctx.beginPath();
-            ctx.moveTo(prevA.x, prevA.y);
-            ctx.lineTo(prevB.x, prevB.y);
-            ctx.lineTo(nextB.x, nextB.y);
-            ctx.lineTo(nextA.x, nextA.y);
-            ctx.closePath();
-            ctx.fill();
-
-            prevT = nextT;
-            prevA = nextA;
-            prevB = nextB;
+            faceFill.addColorStop(s0, color);
+            faceFill.addColorStop(s1, color);
+            prevStop = s1;
           }
 
-          const topMid = { x: (topA.x + topB.x) * 0.5, y: (topA.y + topB.y) * 0.5 };
-          const baseMid = { x: (face.edgeA2.x + face.edgeB2.x) * 0.5, y: (face.edgeA2.y + face.edgeB2.y) * 0.5 };
+          ctx.beginPath();
+          ctx.moveTo(topA.x, topA.y);
+          ctx.lineTo(topB.x, topB.y);
+          ctx.lineTo(face.edgeB2.x, face.edgeB2.y);
+          ctx.lineTo(face.edgeA2.x, face.edgeA2.y);
+          ctx.closePath();
+          ctx.fillStyle = faceFill;
+          ctx.fill();
+
           const faceSheen = ctx.createLinearGradient(topMid.x, topMid.y, baseMid.x, baseMid.y);
           faceSheen.addColorStop(0, "rgba(255, 255, 255, 0.038)");
           faceSheen.addColorStop(1, "rgba(12, 3, 28, 0.055)");
