@@ -1893,8 +1893,8 @@
             continue;
           }
           const isPast = markerT >= cap;
-          const alpha = isPast ? 0.76 : 0.18;
-          const radius = isPast ? 0.3 : 0.22;
+          const alpha = isPast ? 0.82 : 0.2;
+          const radius = isPast ? 0.58 : 0.42;
 
           ctx.beginPath();
           ctx.fillStyle = "rgba(250, 252, 255, " + alpha.toFixed(3) + ")";
@@ -1921,45 +1921,44 @@
           }
           const depthSpan = Math.max(epsilon, 1 - cap);
           const shade = clamp(face.shade, 0.2, 1.5);
+          const sliceCount = 72;
+          let prevT = cap;
+          let prevA = topA;
+          let prevB = topB;
+          for (let sliceIndex = 1; sliceIndex <= sliceCount; sliceIndex += 1) {
+            const nextT = cap + depthSpan * (sliceIndex / sliceCount);
+            const nextA3 = lerp3(face.apex3, face.edgeA3, nextT);
+            const nextB3 = lerp3(face.apex3, face.edgeB3, nextT);
+            const nextA = projectWorldVertex(nextA3, face.width, face.height, face.focalLength);
+            const nextB = projectWorldVertex(nextB3, face.width, face.height, face.focalLength);
+            if (!nextA || !nextB) {
+              continue;
+            }
+
+            const midT = (prevT + nextT) * 0.5;
+            const rgb = sampleTetraColor(midT);
+            ctx.fillStyle =
+              "rgba(" +
+              Math.round(clamp(rgb.r * shade, 0, 255)) + "," +
+              Math.round(clamp(rgb.g * shade, 0, 255)) + "," +
+              Math.round(clamp(rgb.b * shade, 0, 255)) + "," +
+              "0.915)";
+
+            ctx.beginPath();
+            ctx.moveTo(prevA.x, prevA.y);
+            ctx.lineTo(prevB.x, prevB.y);
+            ctx.lineTo(nextB.x, nextB.y);
+            ctx.lineTo(nextA.x, nextA.y);
+            ctx.closePath();
+            ctx.fill();
+
+            prevT = nextT;
+            prevA = nextA;
+            prevB = nextB;
+          }
+
           const topMid = { x: (topA.x + topB.x) * 0.5, y: (topA.y + topB.y) * 0.5 };
           const baseMid = { x: (face.edgeA2.x + face.edgeB2.x) * 0.5, y: (face.edgeA2.y + face.edgeB2.y) * 0.5 };
-          const rgbTop = sampleTetraColor(cap + depthSpan * 0.08);
-          const rgbMid = sampleTetraColor(cap + depthSpan * 0.5);
-          const rgbBottom = sampleTetraColor(1);
-          const faceFill = ctx.createLinearGradient(topMid.x, topMid.y, baseMid.x, baseMid.y);
-          faceFill.addColorStop(
-            0,
-            "rgba(" +
-              Math.round(clamp(rgbTop.r * shade, 0, 255)) + "," +
-              Math.round(clamp(rgbTop.g * shade, 0, 255)) + "," +
-              Math.round(clamp(rgbTop.b * shade, 0, 255)) + "," +
-              "0.93)"
-          );
-          faceFill.addColorStop(
-            0.5,
-            "rgba(" +
-              Math.round(clamp(rgbMid.r * shade, 0, 255)) + "," +
-              Math.round(clamp(rgbMid.g * shade, 0, 255)) + "," +
-              Math.round(clamp(rgbMid.b * shade, 0, 255)) + "," +
-              "0.915)"
-          );
-          faceFill.addColorStop(
-            1,
-            "rgba(" +
-              Math.round(clamp(rgbBottom.r * shade, 0, 255)) + "," +
-              Math.round(clamp(rgbBottom.g * shade, 0, 255)) + "," +
-              Math.round(clamp(rgbBottom.b * shade, 0, 255)) + "," +
-              "0.905)"
-          );
-          ctx.beginPath();
-          ctx.moveTo(topA.x, topA.y);
-          ctx.lineTo(topB.x, topB.y);
-          ctx.lineTo(face.edgeB2.x, face.edgeB2.y);
-          ctx.lineTo(face.edgeA2.x, face.edgeA2.y);
-          ctx.closePath();
-          ctx.fillStyle = faceFill;
-          ctx.fill();
-
           const faceSheen = ctx.createLinearGradient(topMid.x, topMid.y, baseMid.x, baseMid.y);
           faceSheen.addColorStop(0, "rgba(255, 255, 255, 0.038)");
           faceSheen.addColorStop(1, "rgba(12, 3, 28, 0.055)");
