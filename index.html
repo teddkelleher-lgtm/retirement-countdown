@@ -1978,7 +1978,6 @@
           const h1 = projectWorldVertex(h13, face.width, face.height, face.focalLength);
           const h2 = projectWorldVertex(h23, face.width, face.height, face.focalLength);
           if (!h1 || !h2) {
-            drawCornerMonthDots(ctx, face, cap);
             return;
           }
           const midX = (h1.x + h2.x + face.apex2.x) / 3;
@@ -2026,8 +2025,6 @@
           ctx.fill();
           ctx.restore();
         }
-
-        drawCornerMonthDots(ctx, face, cap);
       }
 
       function drawCapPlane(ctx, rotatedVertices, width, height, focalLength, capHeightRatio) {
