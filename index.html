@@ -1148,7 +1148,7 @@
       const TETRA_TARGET_CENTER_Y = 0.54;
       const TETRA_YAW_OFFSET = Math.PI / 4;
       const TETRA_LEAF_DROP_MS = 10 * 1000;
-      const TETRA_LEAF_FALL_MS = 3200;
+      const TETRA_LEAF_FALL_MS = 8000;
       const TETRA_CAMERA_POS = { x: 0, y: 0.92, z: 5.8 };
       const TETRA_LOOK_AT = { x: 0, y: 0.02, z: 0 };
       // Square pyramid geometry: apex + 4 base corners.
@@ -2224,8 +2224,10 @@
           driftA = normalize3(cross3(axis, { x: 1, y: 0, z: 0 }));
         }
         const driftB = normalize3(cross3(axis, driftA));
-        const dropHeight = 0.52 + Math.random() * 0.22;
-        const start = add3(target, scale3(axis, dropHeight));
+        const dropHeight = 1.18 + Math.random() * 0.42;
+        const verticalLift = 0.42 + Math.random() * 0.2;
+        let start = add3(target, scale3(axis, dropHeight));
+        start = add3(start, { x: 0, y: verticalLift, z: 0 });
 
         leafPixelDrop = {
           startMs: nowMs,
