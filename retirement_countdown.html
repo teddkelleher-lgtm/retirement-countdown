@@ -2237,6 +2237,13 @@
           driftA,
           driftB,
           phase: Math.random() * Math.PI * 2,
+          flashMoments: [
+            0.18 + Math.random() * 0.2,
+            0.45 + Math.random() * 0.2,
+            0.72 + Math.random() * 0.16
+          ],
+          flashSigma: 0.015 + Math.random() * 0.009,
+          laserAngle: -Math.PI * 0.22 + (Math.random() - 0.5) * 0.2,
           color: sampleTetraColor(cap),
           size: 1.55 + Math.random() * 0.7
         };
@@ -2270,14 +2277,19 @@
         const rotation = Math.sin(p * Math.PI * 4 + leafPixelDrop.phase) * 0.68;
         const alpha = clamp(0.96 - p * 0.16, 0.62, 0.96);
         const c = leafPixelDrop.color;
-        const tumble = Math.sin(p * Math.PI * 4.9 + leafPixelDrop.phase * 0.9);
-        const flashPrimary = Math.pow(Math.max(0, Math.sin(p * Math.PI * 13.2 + leafPixelDrop.phase * 1.6)), 20);
-        const flashSecondary = Math.pow(Math.max(0, Math.sin(p * Math.PI * 8.7 + leafPixelDrop.phase * 0.7 + 0.9)), 16);
-        const flash = clamp((flashPrimary + flashSecondary * 0.72) * (0.4 + driftDecay * 0.6), 0, 1);
-        const baseSpec = 0.1 + (Math.abs(tumble) * 0.18);
-        const sparkleAlpha = clamp(baseSpec + flash * 0.92, 0.08, 0.98);
-        const beamLen = size * (5.2 + flash * 11.5);
-        const beamWidth = 0.26 + flash * 1.55;
+        const tumbleSpin = p * Math.PI * 10.8 + leafPixelDrop.phase;
+        const facetA = Math.max(0, Math.cos(tumbleSpin));
+        const facetB = Math.max(0, Math.cos(tumbleSpin * 1.71 + 0.96));
+        const facetSpec = Math.pow(clamp(facetA * 0.68 + facetB * 0.32, 0, 1), 13);
+        let flashWindow = 0;
+        for (let i = 0; i < leafPixelDrop.flashMoments.length; i += 1) {
+          const d = p - leafPixelDrop.flashMoments[i];
+          const sigma = leafPixelDrop.flashSigma;
+          flashWindow += Math.exp(-(d * d) / (2 * sigma * sigma));
+        }
+        const flash = clamp(facetSpec * flashWindow * (0.34 + driftDecay * 0.66), 0, 1);
+        const baseSpec = 0.08 + (facetSpec * 0.26);
+        const sparkleAlpha = clamp(baseSpec + flash * 0.96, 0.08, 0.99);
 
         ctx.save();
         ctx.translate(projected.x, projected.y);
@@ -2285,47 +2297,43 @@
         ctx.fillStyle = "rgba(" + c.r + "," + c.g + "," + c.b + "," + alpha.toFixed(3) + ")";
         ctx.fillRect(-size * 0.5, -size * 0.5, size, size);
         ctx.lineWidth = 0.26;
-        ctx.strokeStyle = "rgba(255,255,255," + (0.18 + Math.abs(tumble) * 0.24).toFixed(3) + ")";
+        ctx.strokeStyle = "rgba(255,255,255," + (0.1 + facetSpec * 0.2).toFixed(3) + ")";
         ctx.beginPath();
         ctx.moveTo(-size * 0.44, size * 0.36);
         ctx.lineTo(size * 0.4, -size * 0.38);
         ctx.stroke();
-        ctx.strokeStyle = "rgba(255,255,255," + (0.1 + Math.abs(tumble) * 0.16).toFixed(3) + ")";
+        ctx.strokeStyle = "rgba(255,255,255," + (0.06 + facetSpec * 0.14).toFixed(3) + ")";
         ctx.beginPath();
         ctx.moveTo(-size * 0.46, -size * 0.12);
         ctx.lineTo(size * 0.2, -size * 0.46);
         ctx.stroke();
         ctx.fillStyle = "rgba(255, 255, 255, 0.42)";
         ctx.fillRect(-size * 0.2, -size * 0.2, size * 0.24, size * 0.24);
-        if (flash > 0.06) {
+        if (flash > 0.025) {
+          const flashCore = Math.pow(flash, 0.78);
+          const beamLen = size * (4.2 + flashCore * 16.5);
+          const beamWidth = 0.15 + flashCore * 1.1;
+          const streakAngle = leafPixelDrop.laserAngle + Math.sin(tumbleSpin * 0.7) * 0.16;
           ctx.globalCompositeOperation = "lighter";
           ctx.lineCap = "round";
+          ctx.rotate(streakAngle);
           ctx.lineWidth = beamWidth;
-          ctx.strokeStyle = "rgba(255,255,255," + (sparkleAlpha * 0.95).toFixed(3) + ")";
+          ctx.strokeStyle = "rgba(255,255,255," + (sparkleAlpha * 0.97).toFixed(3) + ")";
           ctx.beginPath();
           ctx.moveTo(-beamLen, 0);
           ctx.lineTo(beamLen, 0);
           ctx.stroke();
+          ctx.lineWidth = beamWidth * 0.42;
+          ctx.strokeStyle = "rgba(255,255,255," + (sparkleAlpha * 0.42).toFixed(3) + ")";
           ctx.beginPath();
-          ctx.moveTo(0, -beamLen * 0.82);
-          ctx.lineTo(0, beamLen * 0.82);
+          ctx.moveTo(0, -beamLen * 0.28);
+          ctx.lineTo(0, beamLen * 0.28);
           ctx.stroke();
-          ctx.rotate(Math.PI * 0.25);
-          ctx.lineWidth = beamWidth * 0.66;
-          ctx.strokeStyle = "rgba(255,255,255," + (sparkleAlpha * 0.72).toFixed(3) + ")";
-          ctx.beginPath();
-          ctx.moveTo(-beamLen * 0.62, 0);
-          ctx.lineTo(beamLen * 0.62, 0);
-          ctx.stroke();
-          ctx.beginPath();
-          ctx.moveTo(0, -beamLen * 0.62);
-          ctx.lineTo(0, beamLen * 0.62);
-          ctx.stroke();
-          ctx.rotate(-Math.PI * 0.25);
-          ctx.filter = "blur(" + (0.5 + flash * 1.55).toFixed(2) + "px)";
+          ctx.rotate(-streakAngle);
+          ctx.filter = "blur(" + (0.38 + flashCore * 1.28).toFixed(2) + "px)";
           ctx.fillStyle = "rgba(255,255,255," + (sparkleAlpha * 0.46).toFixed(3) + ")";
           ctx.beginPath();
-          ctx.arc(0, 0, size * (0.62 + flash * 0.72), 0, Math.PI * 2);
+          ctx.arc(0, 0, size * (0.46 + flashCore * 0.86), 0, Math.PI * 2);
           ctx.fill();
           ctx.filter = "none";
           ctx.globalCompositeOperation = "source-over";
