@@ -1147,6 +1147,8 @@
       const TETRA_CENTER_Y = 0.5;
       const TETRA_TARGET_CENTER_Y = 0.54;
       const TETRA_YAW_OFFSET = Math.PI / 4;
+      const TETRA_LEAF_DROP_MS = 10 * 1000;
+      const TETRA_LEAF_FALL_MS = 3200;
       const TETRA_CAMERA_POS = { x: 0, y: 0.92, z: 5.8 };
       const TETRA_LOOK_AT = { x: 0, y: 0.02, z: 0 };
       // Square pyramid geometry: apex + 4 base corners.
@@ -1239,6 +1241,8 @@
       const moonCtx = ui.moonPhaseCanvas ? ui.moonPhaseCanvas.getContext("2d") : null;
       let tetraDpr = 1;
       let tetraRaf = 0;
+      let leafPixelDrop = null;
+      let leafPixelNextSpawnMs = 1400;
       let latestSkyCurrent = null;
 
       function mixRgb(rgbA, rgbB, t) {
@@ -1878,6 +1882,14 @@
         return { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z };
       }
 
+      function add3(a, b) {
+        return { x: a.x + b.x, y: a.y + b.y, z: a.z + b.z };
+      }
+
+      function scale3(v, scalar) {
+        return { x: v.x * scalar, y: v.y * scalar, z: v.z * scalar };
+      }
+
       function cross3(a, b) {
         return {
           x: a.y * b.z - a.z * b.y,
@@ -2186,6 +2198,96 @@
         ctx.restore();
       }
 
+      function maybeSpawnLeafPixel(nowMs, rotatedVertices, capHeightRatio) {
+        if (nowMs < leafPixelNextSpawnMs) {
+          return;
+        }
+        leafPixelNextSpawnMs = nowMs + TETRA_LEAF_DROP_MS;
+
+        const cap = clamp(capHeightRatio, 0, 1);
+        if (cap <= 1e-4 || cap >= 1) {
+          leafPixelDrop = null;
+          return;
+        }
+
+        const apex = rotatedVertices[0];
+        const capWorld = TETRA_BASE_RING.map((idx) => lerp3(apex, rotatedVertices[idx], cap));
+        const u = 0.22 + Math.random() * 0.56;
+        const v = 0.22 + Math.random() * 0.56;
+        const backEdge = lerp3(capWorld[0], capWorld[1], u);
+        const frontEdge = lerp3(capWorld[3], capWorld[2], u);
+        const target = lerp3(backEdge, frontEdge, v);
+
+        const axis = normalize3(subtract3(apex, target));
+        let driftA = normalize3(cross3(axis, { x: 0, y: 1, z: 0 }));
+        if (Math.hypot(driftA.x, driftA.y, driftA.z) <= 1e-9) {
+          driftA = normalize3(cross3(axis, { x: 1, y: 0, z: 0 }));
+        }
+        const driftB = normalize3(cross3(axis, driftA));
+        const dropHeight = 0.52 + Math.random() * 0.22;
+        const start = add3(target, scale3(axis, dropHeight));
+
+        leafPixelDrop = {
+          startMs: nowMs,
+          settleStartMs: 0,
+          start,
+          target,
+          driftA,
+          driftB,
+          phase: Math.random() * Math.PI * 2,
+          color: sampleTetraColor(cap),
+          size: 1.55 + Math.random() * 0.7
+        };
+      }
+
+      function drawLeafPixelDrop(ctx, nowMs, rotatedVertices, width, height, focalLength, capHeightRatio) {
+        maybeSpawnLeafPixel(nowMs, rotatedVertices, capHeightRatio);
+        if (!leafPixelDrop) {
+          return;
+        }
+
+        const elapsed = nowMs - leafPixelDrop.startMs;
+        const p = clamp(elapsed / TETRA_LEAF_FALL_MS, 0, 1);
+        const fall = 1 - ((1 - p) * (1 - p) * (1 - p));
+        const driftDecay = 1 - p;
+        const swayA = Math.sin(p * Math.PI * 3.2 + leafPixelDrop.phase) * 0.16 * driftDecay;
+        const swayB = Math.sin(p * Math.PI * 1.85 + leafPixelDrop.phase * 0.63) * 0.08 * (0.35 + driftDecay * 0.65);
+        let worldPos = lerp3(leafPixelDrop.start, leafPixelDrop.target, fall);
+        worldPos = add3(worldPos, scale3(leafPixelDrop.driftA, swayA));
+        worldPos = add3(worldPos, scale3(leafPixelDrop.driftB, swayB));
+
+        const projected = projectWorldVertex(worldPos, width, height, focalLength);
+        if (!projected) {
+          if (p >= 1) {
+            leafPixelDrop = null;
+          }
+          return;
+        }
+
+        const size = leafPixelDrop.size * (0.86 + (1 - p) * 0.34);
+        const rotation = Math.sin(p * Math.PI * 4 + leafPixelDrop.phase) * 0.68;
+        const alpha = clamp(0.96 - p * 0.16, 0.62, 0.96);
+        const c = leafPixelDrop.color;
+
+        ctx.save();
+        ctx.translate(projected.x, projected.y);
+        ctx.rotate(rotation);
+        ctx.fillStyle = "rgba(" + c.r + "," + c.g + "," + c.b + "," + alpha.toFixed(3) + ")";
+        ctx.fillRect(-size * 0.5, -size * 0.5, size, size);
+        ctx.fillStyle = "rgba(255, 255, 255, 0.32)";
+        ctx.fillRect(-size * 0.2, -size * 0.2, size * 0.24, size * 0.24);
+        ctx.restore();
+
+        if (p >= 1) {
+          if (!leafPixelDrop.settleStartMs) {
+            leafPixelDrop.settleStartMs = nowMs;
+          }
+          if (nowMs - leafPixelDrop.settleStartMs >= 700) {
+            leafPixelDrop = null;
+          }
+        }
+      }
+
       function drawTetrahedron(nowMs) {
         if (!tetraCtx || !ui.tetraCanvas) {
           return;
@@ -2264,6 +2366,7 @@
           drawFaceLayers(tetraCtx, face, tetraRows, tetraCutRatio);
         }
         drawCapPlane(tetraCtx, rotatedVertices, width, height, focalLength, tetraCutRatio);
+        drawLeafPixelDrop(tetraCtx, nowMs, rotatedVertices, width, height, focalLength, tetraCutRatio);
         tetraCtx.restore();
       }
 
