@@ -17,6 +17,8 @@
       --bg-1: #2a0f2b;
       --bg-2: #5e1a3f;
       --bg-3: #c05746;
+      --page-sky-top: rgba(110, 160, 215, 0.92);
+      --page-sky-bottom: rgba(188, 223, 248, 0.78);
       --accent-lime: #b8ff58;
       --accent-gold: #ffd166;
       --accent-mango: #ff9d4d;
@@ -45,7 +47,7 @@
       height: 100%;
       min-height: 100%;
       min-height: -webkit-fill-available;
-      background-color: #2a0f2b;
+      background-color: var(--page-sky-top);
       color: var(--ink-main);
       font-family: "Sora", "Avenir Next", "Segoe UI", sans-serif;
       overflow-x: hidden;
@@ -55,6 +57,7 @@
       min-height: 100svh;
       min-height: 100dvh;
       background:
+        linear-gradient(180deg, var(--page-sky-top) 0%, var(--page-sky-bottom) 19%, rgba(112, 96, 150, 0.52) 38%, rgba(94, 26, 63, 0.84) 62%, rgba(192, 87, 70, 0.94) 100%),
         radial-gradient(120% 95% at 12% -15%, rgba(255, 203, 86, 0.5) 0%, transparent 60%),
         radial-gradient(100% 120% at 110% 5%, rgba(255, 94, 182, 0.4) 0%, transparent 65%),
         radial-gradient(90% 100% at 48% 110%, rgba(184, 255, 88, 0.35) 0%, transparent 68%),
@@ -135,6 +138,8 @@
       width: 100%;
       min-height: calc(100svh - 12px);
       min-height: calc(100dvh - 12px);
+      display: flex;
+      flex-direction: column;
       border-radius: 24px;
       padding:
         calc(7px + env(safe-area-inset-top))
@@ -545,6 +550,12 @@
         min-width: 0;
         aspect-ratio: 1.32 / 1;
         max-height: min(38svh, 320px);
+      }
+
+      .grid {
+        flex: 1 1 auto;
+        align-content: stretch;
+        grid-auto-rows: minmax(74px, 1fr);
       }
     }
 
@@ -1334,6 +1345,14 @@
       function applySkyTheme(theme) {
         if (!ui.percentBox) {
           return;
+        }
+        document.documentElement.style.setProperty("--page-sky-top", theme.skyTop);
+        document.documentElement.style.setProperty("--page-sky-bottom", theme.skyBottom);
+        document.documentElement.style.backgroundColor = theme.skyTop;
+        document.body.style.backgroundColor = theme.skyTop;
+        const themeMeta = document.querySelector('meta[name="theme-color"]');
+        if (themeMeta) {
+          themeMeta.setAttribute("content", theme.skyTop);
         }
         ui.percentBox.style.setProperty("--sky-top", theme.skyTop);
         ui.percentBox.style.setProperty("--sky-bottom", theme.skyBottom);
