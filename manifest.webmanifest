@@ -1,0 +1,11 @@
+{
+  "name": "Countdown to Next",
+  "short_name": "Countdown",
+  "description": "Live retirement countdown with pyramid visualization and Olympia sky conditions.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "background_color": "#87b7e4",
+  "theme_color": "#87b7e4"
+}
