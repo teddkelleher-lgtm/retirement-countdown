@@ -31,6 +31,8 @@
       --sky-cloud-opacity: 0.16;
       --sky-cloud-soft: 8px;
       --sky-star-opacity: 0;
+      --page-sky-top: rgb(26, 45, 73);
+      --page-sky-bottom: rgb(94, 120, 156);
     }
 
     * {
@@ -679,6 +681,14 @@
       body {
         padding: 0 !important;
         animation: none !important;
+        background:
+          linear-gradient(
+            180deg,
+            var(--page-sky-top) 0%,
+            var(--page-sky-bottom) 36%,
+            rgba(94, 26, 63, 0.98) 67%,
+            #c05746 100%
+          ) !important;
       }
 
       body::before,
@@ -771,8 +781,11 @@
       }
 
       .help-wrap {
-        right: 10px !important;
-        bottom: 8px !important;
+        position: relative !important;
+        right: auto !important;
+        bottom: auto !important;
+        margin: 14px 10px calc(16px + env(safe-area-inset-bottom)) auto !important;
+        width: fit-content !important;
       }
     }
   </style>
@@ -782,9 +795,9 @@
   <main class="shell">
     <section class="panel">
       <h1 class="title">Countdown to Next</h1>
-      <p class="subtitle">Career span: Jan 5, 1994 8:00 AM to Jun 25, 2026 5:30 PM</p>
+      <p class="subtitle">Time at Department of Community Development: Jan 5, 1994 8:00 AM to Jun 25, 2026 5:30 PM</p>
 
-      <section class="percent-box" id="percentBox" aria-label="Career time percentage left">
+      <section class="percent-box" id="percentBox" aria-label="Time left percentage">
         <div class="sky-orbit-layer" aria-hidden="true">
           <div class="sky-body sky-sun" id="skySun"></div>
           <div class="sky-body sky-moon" id="skyMoon">
@@ -793,14 +806,14 @@
         </div>
         <div class="hero-copy-mobile">
           <h1 class="hero-copy-mobile-title">Countdown to Next</h1>
-          <p class="hero-copy-mobile-subtitle">Career span: Jan 5, 1994 8:00 AM to Jun 25, 2026 5:30 PM</p>
+          <p class="hero-copy-mobile-subtitle">Time at Department of Community Development: Jan 5, 1994 8:00 AM to Jun 25, 2026 5:30 PM</p>
         </div>
         <div class="percent-row">
-          <span class="percent-label">Career Time Left</span>
+          <span class="percent-label">Time Left</span>
           <span class="percent-value" id="percentValue">--</span>
         </div>
         <div class="percent-viz">
-          <div class="pyramid-shell" role="progressbar" aria-label="Career time left in pyramid form" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="leftPyramidWrap">
+          <div class="pyramid-shell" role="progressbar" aria-label="Time left in pyramid form" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="leftPyramidWrap">
             <div class="tetra-scene">
               <canvas class="tetra-canvas" id="tetraCanvas" aria-hidden="true"></canvas>
             </div>
@@ -1504,6 +1517,8 @@
         if (!ui.percentBox) {
           return;
         }
+        document.documentElement.style.setProperty("--page-sky-top", theme.skyTop);
+        document.documentElement.style.setProperty("--page-sky-bottom", theme.skyBottom);
         document.documentElement.style.backgroundColor = theme.skyTop;
         document.body.style.backgroundColor = theme.skyTop;
         ui.percentBox.style.setProperty("--sky-top", theme.skyTop);
