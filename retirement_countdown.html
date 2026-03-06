@@ -268,21 +268,7 @@
     }
 
     .percent-box::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(circle at 14% 20%, rgba(255, 255, 255, 0.95) 0 1px, transparent 1.4px),
-        radial-gradient(circle at 37% 14%, rgba(255, 255, 255, 0.92) 0 1px, transparent 1.5px),
-        radial-gradient(circle at 62% 26%, rgba(255, 255, 255, 0.9) 0 1px, transparent 1.4px),
-        radial-gradient(circle at 82% 18%, rgba(255, 255, 255, 0.9) 0 1px, transparent 1.5px),
-        radial-gradient(circle at 26% 42%, rgba(255, 255, 255, 0.82) 0 1px, transparent 1.4px),
-        radial-gradient(circle at 71% 38%, rgba(255, 255, 255, 0.86) 0 1px, transparent 1.4px),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.07), transparent 50%);
-      opacity: var(--sky-star-opacity);
-      z-index: 0;
-      pointer-events: none;
-      mix-blend-mode: screen;
+      display: none;
     }
 
     .sky-orbit-layer {
@@ -291,6 +277,16 @@
       z-index: 1;
       pointer-events: none;
       overflow: hidden;
+    }
+
+    .sky-star-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      pointer-events: none;
+      mix-blend-mode: screen;
     }
 
     .sky-body {
@@ -800,6 +796,7 @@
 
       <section class="percent-box" id="percentBox" aria-label="Time left percentage">
         <div class="sky-orbit-layer" aria-hidden="true">
+          <canvas class="sky-star-canvas" id="skyStarCanvas"></canvas>
           <div class="sky-body sky-sun" id="skySun"></div>
           <div class="sky-body sky-moon" id="skyMoon">
             <canvas class="moon-phase-canvas" id="moonPhaseCanvas" width="192" height="192"></canvas>
@@ -1353,6 +1350,120 @@
         { startHour: 7, startMinute: 0, endHour: 12, endMinute: 0 },
         { startHour: 12, startMinute: 30, endHour: 17, endMinute: 30 }
       ];
+      const STAR_CATALOG = [
+        { name: "Sirius", ra: 6.752, dec: -16.72, mag: -1.46, cons: "Canis Major", tint: [206, 224, 255] },
+        { name: "Canopus", ra: 6.399, dec: -52.70, mag: -0.72, cons: "Carina", tint: [255, 244, 220] },
+        { name: "Arcturus", ra: 14.261, dec: 19.18, mag: -0.05, cons: "Bootes", tint: [255, 210, 170] },
+        { name: "Vega", ra: 18.615, dec: 38.78, mag: 0.03, cons: "Lyra", tint: [214, 228, 255] },
+        { name: "Capella", ra: 5.279, dec: 46.00, mag: 0.08, cons: "Auriga", tint: [255, 228, 186] },
+        { name: "Rigel", ra: 5.243, dec: -8.20, mag: 0.13, cons: "Orion", tint: [200, 222, 255] },
+        { name: "Procyon", ra: 7.655, dec: 5.23, mag: 0.34, cons: "Canis Minor", tint: [244, 246, 255] },
+        { name: "Betelgeuse", ra: 5.919, dec: 7.41, mag: 0.42, cons: "Orion", tint: [255, 186, 138] },
+        { name: "Altair", ra: 19.846, dec: 8.87, mag: 0.77, cons: "Aquila", tint: [240, 244, 255] },
+        { name: "Aldebaran", ra: 4.599, dec: 16.51, mag: 0.87, cons: "Taurus", tint: [255, 190, 138] },
+        { name: "Spica", ra: 13.420, dec: -11.16, mag: 0.98, cons: "Virgo", tint: [210, 226, 255] },
+        { name: "Antares", ra: 16.490, dec: -26.43, mag: 1.06, cons: "Scorpius", tint: [255, 156, 120] },
+        { name: "Pollux", ra: 7.755, dec: 28.03, mag: 1.14, cons: "Gemini", tint: [255, 223, 182] },
+        { name: "Fomalhaut", ra: 22.961, dec: -29.62, mag: 1.16, cons: "Piscis Austrinus", tint: [225, 236, 255] },
+        { name: "Deneb", ra: 20.691, dec: 45.28, mag: 1.25, cons: "Cygnus", tint: [235, 242, 255] },
+        { name: "Regulus", ra: 10.139, dec: 11.97, mag: 1.35, cons: "Leo", tint: [240, 241, 255] },
+        { name: "Adhara", ra: 6.977, dec: -28.97, mag: 1.50, cons: "Canis Major", tint: [219, 232, 255] },
+        { name: "Castor", ra: 7.576, dec: 31.89, mag: 1.58, cons: "Gemini", tint: [230, 237, 255] },
+        { name: "Shaula", ra: 17.560, dec: -37.10, mag: 1.62, cons: "Scorpius", tint: [222, 233, 255] },
+        { name: "Bellatrix", ra: 5.418, dec: 6.35, mag: 1.64, cons: "Orion", tint: [214, 228, 255] },
+        { name: "Elnath", ra: 5.438, dec: 28.61, mag: 1.65, cons: "Taurus", tint: [230, 236, 255] },
+        { name: "Alnilam", ra: 5.603, dec: -1.20, mag: 1.69, cons: "Orion", tint: [225, 235, 255] },
+        { name: "Alnitak", ra: 5.679, dec: -1.94, mag: 1.74, cons: "Orion", tint: [219, 233, 255] },
+        { name: "Alioth", ra: 12.900, dec: 55.96, mag: 1.76, cons: "Ursa Major", tint: [236, 242, 255] },
+        { name: "Mirfak", ra: 3.405, dec: 49.86, mag: 1.79, cons: "Perseus", tint: [255, 227, 189] },
+        { name: "Dubhe", ra: 11.062, dec: 61.75, mag: 1.79, cons: "Ursa Major", tint: [255, 223, 186] },
+        { name: "Kaus Australis", ra: 18.402, dec: -34.38, mag: 1.79, cons: "Sagittarius", tint: [246, 244, 255] },
+        { name: "Wezen", ra: 7.139, dec: -26.39, mag: 1.83, cons: "Canis Major", tint: [255, 222, 177] },
+        { name: "Alkaid", ra: 13.792, dec: 49.31, mag: 1.85, cons: "Ursa Major", tint: [219, 232, 255] },
+        { name: "Menkalinan", ra: 5.992, dec: 44.95, mag: 1.90, cons: "Auriga", tint: [234, 240, 255] },
+        { name: "Alhena", ra: 6.628, dec: 16.40, mag: 1.93, cons: "Gemini", tint: [232, 239, 255] },
+        { name: "Polaris", ra: 2.530, dec: 89.26, mag: 1.97, cons: "Ursa Minor", tint: [250, 248, 255] },
+        { name: "Mirzam", ra: 6.378, dec: -17.96, mag: 1.98, cons: "Canis Major", tint: [219, 231, 255] },
+        { name: "Hamal", ra: 2.120, dec: 23.46, mag: 2.00, cons: "Aries", tint: [255, 222, 181] },
+        { name: "Algieba", ra: 10.332, dec: 19.84, mag: 2.01, cons: "Leo", tint: [255, 220, 176] },
+        { name: "Diphda", ra: 0.726, dec: -17.99, mag: 2.04, cons: "Cetus", tint: [255, 220, 178] },
+        { name: "Nunki", ra: 18.921, dec: -26.30, mag: 2.05, cons: "Sagittarius", tint: [224, 234, 255] },
+        { name: "Alpheratz", ra: 0.139, dec: 29.09, mag: 2.06, cons: "Andromeda", tint: [220, 233, 255] },
+        { name: "Saiph", ra: 5.795, dec: -9.67, mag: 2.07, cons: "Orion", tint: [218, 230, 255] },
+        { name: "Rasalhague", ra: 17.561, dec: 12.56, mag: 2.07, cons: "Ophiuchus", tint: [234, 240, 255] },
+        { name: "Kochab", ra: 14.845, dec: 74.15, mag: 2.08, cons: "Ursa Minor", tint: [255, 219, 172] },
+        { name: "Mirach", ra: 1.162, dec: 35.62, mag: 2.07, cons: "Andromeda", tint: [255, 214, 173] },
+        { name: "Almach", ra: 2.065, dec: 42.33, mag: 2.10, cons: "Andromeda", tint: [255, 202, 154] },
+        { name: "Algol", ra: 3.136, dec: 40.96, mag: 2.12, cons: "Perseus", tint: [220, 232, 255] },
+        { name: "Denebola", ra: 11.817, dec: 14.57, mag: 2.14, cons: "Leo", tint: [224, 234, 255] },
+        { name: "Navi", ra: 0.945, dec: 60.72, mag: 2.15, cons: "Cassiopeia", tint: [218, 231, 255] },
+        { name: "Alphecca", ra: 15.579, dec: 26.71, mag: 2.21, cons: "Corona Borealis", tint: [237, 242, 255] },
+        { name: "Mintaka", ra: 5.533, dec: -0.30, mag: 2.23, cons: "Orion", tint: [223, 234, 255] },
+        { name: "Sadr", ra: 20.370, dec: 40.26, mag: 2.23, cons: "Cygnus", tint: [237, 242, 255] },
+        { name: "Etamin", ra: 17.943, dec: 51.49, mag: 2.23, cons: "Draco", tint: [255, 223, 180] },
+        { name: "Mizar", ra: 13.398, dec: 54.93, mag: 2.23, cons: "Ursa Major", tint: [225, 235, 255] },
+        { name: "Schedar", ra: 0.675, dec: 56.54, mag: 2.24, cons: "Cassiopeia", tint: [255, 206, 160] },
+        { name: "Caph", ra: 0.153, dec: 59.15, mag: 2.28, cons: "Cassiopeia", tint: [247, 244, 255] },
+        { name: "Markab", ra: 23.079, dec: 15.21, mag: 2.49, cons: "Pegasus", tint: [229, 238, 255] },
+        { name: "Scheat", ra: 23.064, dec: 28.08, mag: 2.44, cons: "Pegasus", tint: [255, 207, 153] },
+        { name: "Enif", ra: 21.736, dec: 9.88, mag: 2.38, cons: "Pegasus", tint: [255, 205, 150] },
+        { name: "Algenib", ra: 0.220, dec: 15.18, mag: 2.84, cons: "Pegasus", tint: [222, 233, 255] },
+        { name: "Sabik", ra: 17.173, dec: -15.73, mag: 2.43, cons: "Ophiuchus", tint: [234, 240, 255] },
+        { name: "Merak", ra: 11.030, dec: 56.38, mag: 2.37, cons: "Ursa Major", tint: [236, 242, 255] },
+        { name: "Phecda", ra: 11.897, dec: 53.69, mag: 2.44, cons: "Ursa Major", tint: [238, 243, 255] },
+        { name: "Alderamin", ra: 21.309, dec: 62.59, mag: 2.45, cons: "Cepheus", tint: [236, 242, 255] },
+        { name: "Aljanah", ra: 20.770, dec: 33.97, mag: 2.46, cons: "Cygnus", tint: [236, 242, 255] },
+        { name: "Aludra", ra: 7.402, dec: -29.30, mag: 2.45, cons: "Canis Major", tint: [225, 236, 255] },
+        { name: "Menkar", ra: 3.037, dec: 4.09, mag: 2.54, cons: "Cetus", tint: [255, 198, 145] },
+        { name: "Zosma", ra: 11.237, dec: 20.52, mag: 2.56, cons: "Leo", tint: [224, 234, 255] },
+        { name: "Gienah", ra: 12.263, dec: -17.54, mag: 2.59, cons: "Corvus", tint: [237, 242, 255] },
+        { name: "Zubeneschamali", ra: 15.283, dec: -9.38, mag: 2.61, cons: "Libra", tint: [216, 230, 255] },
+        { name: "Unukalhai", ra: 15.738, dec: 6.43, mag: 2.63, cons: "Serpens", tint: [255, 210, 162] },
+        { name: "Sheratan", ra: 1.911, dec: 20.81, mag: 2.64, cons: "Aries", tint: [237, 242, 255] },
+        { name: "Mahasim", ra: 5.108, dec: 41.23, mag: 2.65, cons: "Auriga", tint: [241, 245, 255] },
+        { name: "Izar", ra: 14.749, dec: 27.07, mag: 2.35, cons: "Bootes", tint: [255, 216, 168] },
+        { name: "Ruchbah", ra: 1.431, dec: 60.24, mag: 2.68, cons: "Cassiopeia", tint: [233, 239, 255] },
+        { name: "Muphrid", ra: 13.912, dec: 18.40, mag: 2.68, cons: "Bootes", tint: [242, 245, 255] },
+        { name: "Tarazed", ra: 19.771, dec: 10.61, mag: 2.72, cons: "Aquila", tint: [255, 209, 160] },
+        { name: "Zubenelgenubi", ra: 14.847, dec: -16.04, mag: 2.75, cons: "Libra", tint: [234, 240, 255] },
+        { name: "Cebalrai", ra: 17.724, dec: 4.57, mag: 2.76, cons: "Ophiuchus", tint: [255, 224, 184] },
+        { name: "Rastaban", ra: 17.507, dec: 52.30, mag: 2.79, cons: "Draco", tint: [255, 221, 176] },
+        { name: "Vindemiatrix", ra: 13.037, dec: 10.96, mag: 2.85, cons: "Virgo", tint: [255, 223, 182] },
+        { name: "Delta Cygni", ra: 19.749, dec: 45.13, mag: 2.87, cons: "Cygnus", tint: [228, 237, 255] },
+        { name: "Cor Caroli", ra: 12.933, dec: 38.32, mag: 2.89, cons: "Canes Venatici", tint: [245, 246, 255] },
+        { name: "Gomeisa", ra: 7.452, dec: 8.29, mag: 2.89, cons: "Canis Minor", tint: [226, 236, 255] },
+        { name: "Sadalsuud", ra: 21.525, dec: -5.57, mag: 2.90, cons: "Aquarius", tint: [236, 242, 255] },
+        { name: "Sadalmelik", ra: 22.097, dec: -0.32, mag: 2.95, cons: "Aquarius", tint: [235, 241, 255] },
+        { name: "Algorab", ra: 12.497, dec: -16.52, mag: 2.94, cons: "Corvus", tint: [237, 242, 255] },
+        { name: "Mebsuta", ra: 6.732, dec: 25.13, mag: 3.06, cons: "Gemini", tint: [240, 244, 255] },
+        { name: "Pherkad", ra: 15.345, dec: 71.83, mag: 3.05, cons: "Ursa Minor", tint: [245, 247, 255] },
+        { name: "Albireo", ra: 19.513, dec: 27.96, mag: 3.05, cons: "Cygnus", tint: [255, 212, 146] },
+        { name: "Errai", ra: 23.656, dec: 77.63, mag: 3.22, cons: "Cepheus", tint: [255, 223, 178] },
+        { name: "Alfirk", ra: 21.477, dec: 70.56, mag: 3.23, cons: "Cepheus", tint: [225, 236, 255] },
+        { name: "Sulafat", ra: 18.982, dec: 32.69, mag: 3.25, cons: "Lyra", tint: [226, 236, 255] },
+        { name: "Megrez", ra: 12.257, dec: 57.03, mag: 3.32, cons: "Ursa Major", tint: [236, 242, 255] },
+        { name: "Chertan", ra: 11.237, dec: 15.43, mag: 3.34, cons: "Leo", tint: [235, 241, 255] },
+        { name: "Segin", ra: 1.907, dec: 63.67, mag: 3.35, cons: "Cassiopeia", tint: [219, 232, 255] },
+        { name: "Homam", ra: 22.691, dec: 10.83, mag: 3.41, cons: "Pegasus", tint: [236, 242, 255] },
+        { name: "Wasat", ra: 7.335, dec: 21.98, mag: 3.53, cons: "Gemini", tint: [236, 241, 255] },
+        { name: "Ain", ra: 4.477, dec: 19.18, mag: 3.53, cons: "Taurus", tint: [255, 220, 176] },
+        { name: "Sheliak", ra: 18.835, dec: 33.36, mag: 3.52, cons: "Lyra", tint: [238, 243, 255] },
+        { name: "Alshain", ra: 19.921, dec: 6.41, mag: 3.71, cons: "Aquila", tint: [240, 244, 255] }
+      ];
+      const FAMOUS_CONSTELLATIONS = [
+        { name: "Orion", stars: ["Betelgeuse", "Bellatrix", "Mintaka", "Alnilam", "Alnitak", "Rigel", "Saiph"] },
+        { name: "Big Dipper", stars: ["Dubhe", "Merak", "Phecda", "Megrez", "Alioth", "Mizar", "Alkaid"] },
+        { name: "Cassiopeia", stars: ["Caph", "Schedar", "Navi", "Ruchbah", "Segin"] },
+        { name: "Cygnus", stars: ["Deneb", "Sadr", "Delta Cygni", "Aljanah", "Albireo"] },
+        { name: "Taurus", stars: ["Aldebaran", "Elnath", "Ain"] },
+        { name: "Gemini", stars: ["Castor", "Pollux", "Alhena", "Wasat", "Mebsuta"] },
+        { name: "Leo", stars: ["Regulus", "Algieba", "Zosma", "Chertan", "Denebola"] },
+        { name: "Pegasus", stars: ["Markab", "Scheat", "Algenib", "Enif", "Homam"] },
+        { name: "Lyra", stars: ["Vega", "Sheliak", "Sulafat"] },
+        { name: "Scorpius", stars: ["Antares", "Shaula", "Kaus Australis", "Nunki"] },
+        { name: "Auriga", stars: ["Capella", "Menkalinan", "Mahasim"] },
+        { name: "Andromeda", stars: ["Alpheratz", "Mirach", "Almach"] }
+      ];
 
       const UNIT_MS = {
         year: 365.2425 * 24 * 60 * 60 * 1000,
@@ -1383,6 +1494,7 @@
         percentValue: document.getElementById("percentValue"),
         tetraCanvas: document.getElementById("tetraCanvas"),
         pyramidWrap: document.getElementById("leftPyramidWrap"),
+        skyStarCanvas: document.getElementById("skyStarCanvas"),
         skySun: document.getElementById("skySun"),
         skyMoon: document.getElementById("skyMoon"),
         moonPhaseCanvas: document.getElementById("moonPhaseCanvas"),
@@ -1421,8 +1533,10 @@
       let tetraColorLookup = [];
       let tetraMonthMarkerTs = [];
       const tetraCtx = ui.tetraCanvas ? ui.tetraCanvas.getContext("2d") : null;
+      const starCtx = ui.skyStarCanvas ? ui.skyStarCanvas.getContext("2d") : null;
       const moonCtx = ui.moonPhaseCanvas ? ui.moonPhaseCanvas.getContext("2d") : null;
       let tetraDpr = 1;
+      let starDpr = 1;
       let tetraRaf = 0;
       let leafPixelDrops = [];
       let leafPixelNextSpawnMs = 1400;
@@ -1842,6 +1956,28 @@
         };
       }
 
+      function astroStarPosition(date, raHours, decDeg, latitudeDeg, longitudeDeg) {
+        const lw = -longitudeDeg * RAD;
+        const phi = latitudeDeg * RAD;
+        const days = astroToDays(date);
+        const ra = raHours * 15 * RAD;
+        const dec = decDeg * RAD;
+        const hourAngle = astroSiderealTime(days, lw) - ra;
+        return {
+          azimuthNorth: normalizeRadians(astroAzimuthSouth(hourAngle, phi, dec) + Math.PI),
+          altitude: astroAltitude(hourAngle, phi, dec)
+        };
+      }
+
+      function hashString(str) {
+        let h = 2166136261;
+        for (let i = 0; i < str.length; i += 1) {
+          h ^= str.charCodeAt(i);
+          h = Math.imul(h, 16777619);
+        }
+        return (h >>> 0) / 4294967295;
+      }
+
       function mapSkyPoint(altitudeRad, azimuthNorthRad) {
         const altitudeDeg = altitudeRad * DEG;
         const x = clamp(0.5 + 0.44 * Math.sin(azimuthNorthRad), 0.04, 0.96);
@@ -1949,6 +2085,155 @@
           phase: moonIllumination.phase,
           angle: moonIllumination.angle - moonPosition.parallacticAngle
         });
+      }
+
+      function resizeStarCanvas() {
+        if (!ui.skyStarCanvas || !starCtx) {
+          return;
+        }
+        const rect = ui.skyStarCanvas.getBoundingClientRect();
+        const dpr = Math.min(2, window.devicePixelRatio || 1);
+        const width = Math.max(2, Math.round(rect.width * dpr));
+        const height = Math.max(2, Math.round(rect.height * dpr));
+        if (ui.skyStarCanvas.width !== width || ui.skyStarCanvas.height !== height || starDpr !== dpr) {
+          ui.skyStarCanvas.width = width;
+          ui.skyStarCanvas.height = height;
+          starDpr = dpr;
+          starCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+      }
+
+      function magnitudeToStarAlpha(mag) {
+        return clamp(1.12 - ((mag + 1.46) / 5.4), 0.12, 1);
+      }
+
+      function magnitudeToStarRadius(mag, altitudeDeg) {
+        const altBoost = clamp((altitudeDeg + 5) / 65, 0.55, 1.04);
+        return clamp((1.74 - ((mag + 1.46) * 0.22)) * altBoost, 0.42, 1.8);
+      }
+
+      function pickFeaturedConstellation(starStates) {
+        let best = null;
+        let bestScore = 0;
+        for (let i = 0; i < FAMOUS_CONSTELLATIONS.length; i += 1) {
+          const candidate = FAMOUS_CONSTELLATIONS[i];
+          const visible = starStates.filter((state) => candidate.stars.includes(state.star.name) && state.altitudeDeg > 4);
+          const minimumVisible = Math.min(candidate.stars.length, candidate.stars.length <= 3 ? 2 : 3);
+          if (visible.length < minimumVisible) {
+            continue;
+          }
+          const score = visible.reduce((sum, state) => {
+            return sum + ((4.2 - Math.min(state.star.mag, 4.2)) * 18) + Math.max(0, state.altitudeDeg) * 0.22;
+          }, 0);
+          if (score > bestScore) {
+            bestScore = score;
+            best = candidate;
+          }
+        }
+        return best;
+      }
+
+      function renderStarfield(now) {
+        if (!ui.skyStarCanvas || !starCtx) {
+          return;
+        }
+
+        resizeStarCanvas();
+        const width = ui.skyStarCanvas.width / starDpr;
+        const height = ui.skyStarCanvas.height / starDpr;
+        starCtx.clearRect(0, 0, width, height);
+        if (width <= 2 || height <= 2) {
+          return;
+        }
+
+        const date = now instanceof Date ? now : new Date(now);
+        const sunPosition = astroSunPosition(date, OLYMPIA_LAT, OLYMPIA_LON);
+        const sunAltitudeDeg = sunPosition.altitude * DEG;
+        const skyDarkness = clamp((-sunAltitudeDeg - 4) / 10, 0, 1);
+        if (skyDarkness <= 0.01) {
+          return;
+        }
+
+        const cloudCoverRaw = Number(latestSkyCurrent && latestSkyCurrent.cloud_cover);
+        const cloudRatio = Number.isFinite(cloudCoverRaw) ? clamp(cloudCoverRaw / 100, 0, 1) : 0.45;
+        const cloudFade = clamp(1 - cloudRatio * 0.82, 0.1, 1);
+        const starStates = [];
+
+        for (let i = 0; i < STAR_CATALOG.length; i += 1) {
+          const star = STAR_CATALOG[i];
+          const position = astroStarPosition(date, star.ra, star.dec, OLYMPIA_LAT, OLYMPIA_LON);
+          const altitudeDeg = position.altitude * DEG;
+          if (altitudeDeg <= -2) {
+            continue;
+          }
+
+          const point = mapSkyPoint(position.altitude, position.azimuthNorth);
+          if (point.x < 0.01 || point.x > 0.99 || point.y < 0.01 || point.y > 1.08) {
+            continue;
+          }
+
+          const extinction = clamp((altitudeDeg + 4) / 58, 0.12, 1);
+          const alpha = skyDarkness * cloudFade * extinction * magnitudeToStarAlpha(star.mag);
+          if (alpha <= 0.025) {
+            continue;
+          }
+
+          starStates.push({
+            star,
+            point,
+            altitudeDeg,
+            alpha,
+            radius: magnitudeToStarRadius(star.mag, altitudeDeg)
+          });
+        }
+
+        const featuredConstellation = pickFeaturedConstellation(starStates);
+        const featuredNames = featuredConstellation ? new Set(featuredConstellation.stars) : null;
+        const nowSeconds = date.getTime() / 1000;
+
+        starCtx.save();
+        starCtx.globalCompositeOperation = "lighter";
+        for (let i = 0; i < starStates.length; i += 1) {
+          const state = starStates[i];
+          const star = state.star;
+          const baseTint = Array.isArray(star.tint) ? star.tint : [238, 243, 255];
+          let alpha = state.alpha;
+          let radius = state.radius;
+
+          if (featuredNames && featuredNames.has(star.name)) {
+            const seed = hashString(star.name);
+            const twinkleWave = Math.max(0, Math.sin(nowSeconds * (0.72 + seed * 0.38) + seed * Math.PI * 2));
+            const twinkleFlash = Math.pow(twinkleWave, 18);
+            alpha *= 1.16 + twinkleFlash * 0.7;
+            radius *= 1.08 + twinkleFlash * 0.16;
+          }
+
+          alpha = clamp(alpha, 0, 1);
+          const x = state.point.x * width;
+          const y = state.point.y * height;
+          const haloRadius = radius * (featuredNames && featuredNames.has(star.name) ? 5.4 : 3.8);
+          const halo = starCtx.createRadialGradient(x, y, 0, x, y, haloRadius);
+          halo.addColorStop(0, "rgba(" + baseTint[0] + "," + baseTint[1] + "," + baseTint[2] + "," + (alpha * 0.34).toFixed(3) + ")");
+          halo.addColorStop(0.5, "rgba(" + baseTint[0] + "," + baseTint[1] + "," + baseTint[2] + "," + (alpha * 0.12).toFixed(3) + ")");
+          halo.addColorStop(1, "rgba(" + baseTint[0] + "," + baseTint[1] + "," + baseTint[2] + ",0)");
+          starCtx.fillStyle = halo;
+          starCtx.beginPath();
+          starCtx.arc(x, y, haloRadius, 0, Math.PI * 2);
+          starCtx.fill();
+
+          starCtx.fillStyle = "rgba(" + baseTint[0] + "," + baseTint[1] + "," + baseTint[2] + "," + alpha.toFixed(3) + ")";
+          starCtx.beginPath();
+          starCtx.arc(x, y, radius, 0, Math.PI * 2);
+          starCtx.fill();
+
+          if (radius >= 0.9) {
+            starCtx.fillStyle = "rgba(255,255,255," + clamp(alpha * 0.72, 0.08, 0.92).toFixed(3) + ")";
+            starCtx.beginPath();
+            starCtx.arc(x, y, radius * 0.42, 0, Math.PI * 2);
+            starCtx.fill();
+          }
+        }
+        starCtx.restore();
       }
 
       function parseCompactPyramidLayerData(text) {
@@ -2834,6 +3119,7 @@
           }
         }
         previousValues = values;
+        renderStarfield(nowMs);
       }
 
       const fxCanvas = document.getElementById("fxCanvas");
@@ -2926,9 +3212,11 @@
       window.addEventListener("resize", () => {
         resizeCanvas();
         resizeTetraCanvas();
+        resizeStarCanvas();
       });
       resizeCanvas();
       resizeTetraCanvas();
+      resizeStarCanvas();
       loadPyramidLayers();
       refreshOlympiaSky();
       window.setInterval(refreshOlympiaSky, SKY_REFRESH_MS);
