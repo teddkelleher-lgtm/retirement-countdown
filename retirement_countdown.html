@@ -673,7 +673,7 @@
         background: transparent !important;
         box-shadow: none !important;
         backdrop-filter: none !important;
-        padding: 0 10px 0 !important;
+        padding: 0 !important;
       }
 
       .panel::before,
@@ -682,10 +682,61 @@
       }
 
       .title {
+        position: absolute !important;
+        top: 58px !important;
+        left: 14px !important;
+        right: 14px !important;
+        z-index: 6 !important;
+        margin: 0 !important;
+        font-size: clamp(1.14rem, 7.4vw, 1.82rem) !important;
+        line-height: 0.98 !important;
+      }
+
+      .subtitle {
+        position: absolute !important;
+        top: 118px !important;
+        left: 14px !important;
+        right: 14px !important;
+        z-index: 6 !important;
+        margin: 0 !important;
+        font-size: 0.72rem !important;
+        line-height: 1.12 !important;
+      }
+
+      .percent-box {
         margin-top: 0 !important;
+        min-height: clamp(352px, 72svh, 470px) !important;
+        padding: 156px 10px 10px !important;
+        border-radius: 0 0 18px 18px !important;
+        border-top: 0 !important;
+        border-left: 0 !important;
+        border-right: 0 !important;
+      }
+
+      .percent-viz {
+        margin-top: 2px !important;
+      }
+
+      .pyramid-shell {
+        width: min(94vw, 410px) !important;
+        max-height: min(48svh, 330px) !important;
+      }
+
+      .grid {
+        margin-top: 10px !important;
+        padding: 0 10px !important;
+      }
+
+      .metric-section {
+        padding: 0 10px 0 !important;
+      }
+
+      .event-stream {
+        padding: 0 10px !important;
       }
 
       .help-wrap {
+        right: 10px !important;
         bottom: 8px !important;
       }
     }
