@@ -220,6 +220,33 @@
       overflow: hidden;
     }
 
+    .hero-copy-mobile {
+      display: none;
+    }
+
+    .hero-copy-mobile-title {
+      margin: 0;
+      font-family: "Orbitron", "Sora", sans-serif;
+      font-size: clamp(1.18rem, 5.9vw, 1.66rem);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      line-height: 1.02;
+      background: linear-gradient(90deg, #fffdf7 0%, #ffd166 30%, #ff9d4d 58%, #ff5eb6 100%);
+      color: transparent;
+      -webkit-background-clip: text;
+      background-clip: text;
+      text-shadow: 0 0 20px rgba(255, 209, 102, 0.4);
+    }
+
+    .hero-copy-mobile-subtitle {
+      margin: 6px 0 0;
+      color: var(--ink-soft);
+      font-size: 0.8rem;
+      letter-spacing: 0.015em;
+      line-height: 1.25;
+    }
+
     .percent-box::before {
       content: "";
       position: absolute;
@@ -681,24 +708,27 @@
         display: none !important;
       }
 
-      .title {
+      .panel > .title,
+      .panel > .subtitle {
+        display: none !important;
+      }
+
+      .hero-copy-mobile {
+        display: block !important;
         position: absolute !important;
         top: 58px !important;
         left: 14px !important;
         right: 14px !important;
         z-index: 6 !important;
-        margin: 0 !important;
+      }
+
+      .hero-copy-mobile-title {
         font-size: clamp(1.14rem, 7.4vw, 1.82rem) !important;
         line-height: 0.98 !important;
       }
 
-      .subtitle {
-        position: absolute !important;
-        top: 118px !important;
-        left: 14px !important;
-        right: 14px !important;
-        z-index: 6 !important;
-        margin: 0 !important;
+      .hero-copy-mobile-subtitle {
+        margin-top: 10px !important;
         font-size: 0.72rem !important;
         line-height: 1.12 !important;
       }
@@ -755,6 +785,10 @@
           <div class="sky-body sky-moon" id="skyMoon">
             <canvas class="moon-phase-canvas" id="moonPhaseCanvas" width="192" height="192"></canvas>
           </div>
+        </div>
+        <div class="hero-copy-mobile">
+          <h1 class="hero-copy-mobile-title">Countdown to Next</h1>
+          <p class="hero-copy-mobile-subtitle">Career span: Jan 5, 1994 8:00 AM to Jun 25, 2026 5:30 PM</p>
         </div>
         <div class="percent-row">
           <span class="percent-label">Career Time Left</span>
