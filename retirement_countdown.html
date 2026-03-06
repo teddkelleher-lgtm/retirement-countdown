@@ -185,11 +185,24 @@
       letter-spacing: 0.09em;
       line-height: 1.15;
       background: linear-gradient(90deg, #fffdf7 0%, #ffd166 30%, #ff9d4d 58%, #ff5eb6 100%);
+      background-size: 220% 100%;
+      background-position: 0% 50%;
       color: transparent;
       -webkit-background-clip: text;
       background-clip: text;
       text-shadow: 0 0 20px rgba(255, 209, 102, 0.4);
       animation: titleFlicker 5s ease-in-out infinite;
+    }
+
+    .title-sweep-active {
+      animation: titleColorSweepBurst 1.55s cubic-bezier(0.22, 0.78, 0.24, 1), titleFlicker 5s ease-in-out infinite;
+    }
+
+    @keyframes titleColorSweepBurst {
+      0% { background-position: 0% 50%; }
+      18% { background-position: 8% 50%; }
+      72% { background-position: 100% 50%; }
+      100% { background-position: 100% 50%; }
     }
 
     @keyframes titleFlicker {
@@ -235,10 +248,13 @@
       letter-spacing: 0.09em;
       line-height: 1.02;
       background: linear-gradient(90deg, #fffdf7 0%, #ffd166 30%, #ff9d4d 58%, #ff5eb6 100%);
+      background-size: 220% 100%;
+      background-position: 0% 50%;
       color: transparent;
       -webkit-background-clip: text;
       background-clip: text;
       text-shadow: 0 0 20px rgba(255, 209, 102, 0.4);
+      animation: titleFlicker 5s ease-in-out infinite;
     }
 
     .hero-copy-mobile-subtitle {
@@ -551,6 +567,93 @@
       padding: 9px 10px;
       box-shadow: 0 12px 30px rgba(0, 0, 0, 0.38);
       text-align: left;
+    }
+
+    .display-inputs {
+      margin-top: 16px;
+      border-radius: 18px;
+      padding: 12px 12px 14px;
+      background:
+        linear-gradient(rgba(23, 31, 51, 0.72), rgba(30, 40, 64, 0.68)) padding-box,
+        linear-gradient(135deg, rgba(126, 220, 255, 0.56), rgba(255, 208, 130, 0.36), rgba(255, 94, 182, 0.42)) border-box;
+      border: 1px solid transparent;
+      box-shadow: inset 0 0 18px rgba(126, 220, 255, 0.08), 0 10px 24px rgba(0, 0, 0, 0.18);
+    }
+
+    .display-inputs-title {
+      margin: 0 0 4px;
+      font-family: "Orbitron", "Sora", sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #dcf4ff;
+      text-shadow: 0 0 12px rgba(126, 220, 255, 0.22);
+    }
+
+    .display-inputs-note {
+      margin: 0 0 10px;
+      color: rgba(226, 239, 255, 0.82);
+      font-size: 0.68rem;
+      line-height: 1.32;
+    }
+
+    .display-input-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .display-input-card {
+      min-height: 88px;
+      border-radius: 14px;
+      padding: 9px 10px 10px;
+      background: rgba(14, 22, 37, 0.34);
+      border: 1px solid rgba(177, 225, 255, 0.18);
+      box-shadow: inset 0 0 12px rgba(190, 232, 255, 0.04);
+    }
+
+    .display-input-name {
+      margin: 0;
+      font-family: "Orbitron", "Sora", sans-serif;
+      font-size: 0.58rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #bfe8ff;
+    }
+
+    .display-input-name code,
+    .display-input-footer code {
+      font-family: inherit;
+      font-size: inherit;
+      color: inherit;
+      background: rgba(126, 220, 255, 0.08);
+      border: 1px solid rgba(177, 225, 255, 0.14);
+      border-radius: 999px;
+      padding: 0.08em 0.42em;
+    }
+
+    .display-input-value {
+      margin: 5px 0 6px;
+      font-family: "Orbitron", "Sora", sans-serif;
+      font-size: 0.86rem;
+      line-height: 1.1;
+      color: #fff8ee;
+      text-shadow: 0 0 12px rgba(255, 210, 140, 0.2);
+    }
+
+    .display-input-desc {
+      margin: 0;
+      color: rgba(223, 235, 248, 0.8);
+      font-size: 0.61rem;
+      line-height: 1.28;
+    }
+
+    .display-input-footer {
+      margin: 10px 0 0;
+      color: rgba(223, 235, 248, 0.76);
+      font-size: 0.63rem;
+      line-height: 1.32;
     }
 
     .event-chip {
@@ -900,6 +1003,44 @@
           Counters sample continuously and repaint only when each displayed value changes at its current decimal precision. Workday hours use a Monday-Thursday week with a 7:00 AM-5:30 PM day and lunch from 12:00 PM-12:30 PM.
         </div>
       </div>
+
+      <section class="display-inputs" aria-label="Display inputs and weather variables">
+        <h2 class="display-inputs-title">Display Inputs and Weather Variables</h2>
+        <p class="display-inputs-note">These live values shape the sky color, cloudiness, storm styling, star visibility, and moon rendering for Olympia, Washington.</p>
+        <div class="display-input-grid">
+          <article class="display-input-card">
+            <p class="display-input-name"><code>is_day</code></p>
+            <p class="display-input-value" id="displayIsDay">--</p>
+            <p class="display-input-desc">Switches the scene between daytime and nighttime sky palettes from the weather feed.</p>
+          </article>
+          <article class="display-input-card">
+            <p class="display-input-name"><code>cloud_cover</code></p>
+            <p class="display-input-value" id="displayCloudCover">--</p>
+            <p class="display-input-desc">Controls how gray the sky gets, how dense the cloud haze feels, and how dim the stars become.</p>
+          </article>
+          <article class="display-input-card">
+            <p class="display-input-name"><code>weather_code</code></p>
+            <p class="display-input-value" id="displayWeatherCode">--</p>
+            <p class="display-input-desc">Used to detect fog, rain, and other conditions that darken or flatten the sky treatment.</p>
+          </article>
+          <article class="display-input-card">
+            <p class="display-input-name"><code>precipitation</code></p>
+            <p class="display-input-value" id="displayPrecipitation">--</p>
+            <p class="display-input-desc">Extra rain signal that deepens storm styling even when the sky code alone is not enough.</p>
+          </article>
+          <article class="display-input-card">
+            <p class="display-input-name">Moon Illumination</p>
+            <p class="display-input-value" id="displayMoonIllumination">--</p>
+            <p class="display-input-desc">Percent illumination is the share of the moon's Earth-facing disc lit by the sun, and it shapes the moon phase disc you see.</p>
+          </article>
+          <article class="display-input-card">
+            <p class="display-input-name">Featured Constellation</p>
+            <p class="display-input-value" id="displayConstellation">--</p>
+            <p class="display-input-desc">If a major constellation is clearly visible, its stars get a slight brightness lift and occasional twinkles.</p>
+          </article>
+        </div>
+        <p class="display-input-footer">Direct live weather inputs: <code>is_day</code>, <code>cloud_cover</code>, <code>weather_code</code>, and <code>precipitation</code>. Sun, moon, and stars are computed from Olympia latitude/longitude plus the current local date and time, then blended with those live weather values.</p>
+      </section>
     </section>
   </main>
 
@@ -1501,6 +1642,13 @@
         helpBtn: document.getElementById("helpBtn"),
         helpTip: document.getElementById("footnoteTip"),
         eventStream: document.getElementById("eventStream"),
+        displayIsDay: document.getElementById("displayIsDay"),
+        displayCloudCover: document.getElementById("displayCloudCover"),
+        displayWeatherCode: document.getElementById("displayWeatherCode"),
+        displayPrecipitation: document.getElementById("displayPrecipitation"),
+        displayMoonIllumination: document.getElementById("displayMoonIllumination"),
+        displayConstellation: document.getElementById("displayConstellation"),
+        titleNodes: Array.from(document.querySelectorAll(".title, .hero-copy-mobile-title")),
         metrics: {},
         completedMetrics: {}
       };
@@ -1541,6 +1689,8 @@
       let leafPixelDrops = [];
       let leafPixelNextSpawnMs = 1400;
       let latestSkyCurrent = null;
+      let latestMoonIllumination = null;
+      let latestFeaturedConstellationName = "No major constellation highlighted";
 
       function mixRgb(rgbA, rgbB, t) {
         const clamped = clamp(t, 0, 1);
@@ -1794,6 +1944,112 @@
           minimumFractionDigits: decimals,
           maximumFractionDigits: decimals
         });
+      }
+
+      function describeWeatherCode(code) {
+        if (!Number.isFinite(code)) {
+          return "unknown";
+        }
+        if (code === 0) {
+          return "clear";
+        }
+        if (code === 1) {
+          return "mainly clear";
+        }
+        if (code === 2) {
+          return "partly cloudy";
+        }
+        if (code === 3) {
+          return "overcast";
+        }
+        if (code === 45 || code === 48) {
+          return "fog";
+        }
+        if (code >= 51 && code <= 67) {
+          return "drizzle/rain";
+        }
+        if (code >= 71 && code <= 77) {
+          return "snow";
+        }
+        if (code >= 80 && code <= 82) {
+          return "rain showers";
+        }
+        if (code >= 85 && code <= 86) {
+          return "snow showers";
+        }
+        if (code >= 95 && code <= 99) {
+          return "thunderstorm";
+        }
+        return "mixed";
+      }
+
+      function describeMoonPhase(phase) {
+        const p = clamp(Number(phase), 0, 1);
+        if (p < 0.03 || p >= 0.97) {
+          return "new moon";
+        }
+        if (p < 0.22) {
+          return "waxing crescent";
+        }
+        if (p < 0.28) {
+          return "first quarter";
+        }
+        if (p < 0.47) {
+          return "waxing gibbous";
+        }
+        if (p < 0.53) {
+          return "full moon";
+        }
+        if (p < 0.72) {
+          return "waning gibbous";
+        }
+        if (p < 0.78) {
+          return "last quarter";
+        }
+        return "waning crescent";
+      }
+
+      function triggerTitleSweep() {
+        if (!ui.titleNodes || !ui.titleNodes.length) {
+          return;
+        }
+        for (let i = 0; i < ui.titleNodes.length; i += 1) {
+          const node = ui.titleNodes[i];
+          node.classList.remove("title-sweep-active");
+          void node.offsetWidth;
+          node.classList.add("title-sweep-active");
+        }
+      }
+
+      function updateDisplayInputs() {
+        const current = latestSkyCurrent || {};
+        const cloudCoverRaw = Number(current.cloud_cover);
+        const weatherCodeRaw = Number(current.weather_code);
+        const precipitationRaw = Number(current.precipitation);
+        const isDayRaw = Number(current.is_day);
+        const illumination = latestMoonIllumination;
+        const illumPct = Number.isFinite(Number(illumination && illumination.fraction))
+          ? (Number(illumination.fraction) * 100).toFixed(1) + "% illuminated - " + describeMoonPhase(illumination.phase)
+          : "calculating";
+        const isDayText = Number.isFinite(isDayRaw)
+          ? (isDayRaw === 1 ? "1 - daytime palette" : "0 - nighttime palette")
+          : "feed unavailable";
+        const cloudText = Number.isFinite(cloudCoverRaw)
+          ? cloudCoverRaw.toFixed(0) + "% cover"
+          : "feed unavailable";
+        const weatherCodeText = Number.isFinite(weatherCodeRaw)
+          ? weatherCodeRaw.toFixed(0) + " - " + describeWeatherCode(weatherCodeRaw)
+          : "feed unavailable";
+        const precipitationText = Number.isFinite(precipitationRaw)
+          ? precipitationRaw.toFixed(2) + " current precip"
+          : "feed unavailable";
+
+        setText(ui.displayIsDay, "display-is-day", isDayText);
+        setText(ui.displayCloudCover, "display-cloud-cover", cloudText);
+        setText(ui.displayWeatherCode, "display-weather-code", weatherCodeText);
+        setText(ui.displayPrecipitation, "display-precipitation", precipitationText);
+        setText(ui.displayMoonIllumination, "display-moon-illumination", illumPct);
+        setText(ui.displayConstellation, "display-constellation", latestFeaturedConstellationName || "No major constellation highlighted");
       }
 
       function setText(node, key, nextValue) {
@@ -2062,6 +2318,7 @@
         const sunPosition = astroSunPosition(date, OLYMPIA_LAT, OLYMPIA_LON);
         const moonPosition = astroMoonPosition(date, OLYMPIA_LAT, OLYMPIA_LON);
         const moonIllumination = astroMoonIllumination(date);
+        latestMoonIllumination = moonIllumination;
         const cloudCoverRaw = Number(latestSkyCurrent && latestSkyCurrent.cloud_cover);
         const cloudRatio = Number.isFinite(cloudCoverRaw) ? clamp(cloudCoverRaw / 100, 0, 1) : 0.45;
         const sunPoint = mapSkyPoint(sunPosition.altitude, sunPosition.azimuthNorth);
@@ -2085,6 +2342,7 @@
           phase: moonIllumination.phase,
           angle: moonIllumination.angle - moonPosition.parallacticAngle
         });
+        updateDisplayInputs();
       }
 
       function resizeStarCanvas() {
@@ -2188,6 +2446,7 @@
         }
 
         const featuredConstellation = pickFeaturedConstellation(starStates);
+        latestFeaturedConstellationName = featuredConstellation ? featuredConstellation.name : "No major constellation highlighted";
         const featuredNames = featuredConstellation ? new Set(featuredConstellation.stars) : null;
         const nowSeconds = date.getTime() / 1000;
 
@@ -3224,6 +3483,8 @@
       window.setInterval(() => {
         updateCelestialSky(new Date());
       }, CELESTIAL_REFRESH_MS);
+      triggerTitleSweep();
+      window.setInterval(triggerTitleSweep, 20000);
       render();
       startLoop();
       tetraRaf = requestAnimationFrame(tetraLoop);
