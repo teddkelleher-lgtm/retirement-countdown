@@ -1504,12 +1504,42 @@
         if (!ui.percentBox) {
           return;
         }
+        document.documentElement.style.backgroundColor = theme.skyTop;
+        document.body.style.backgroundColor = theme.skyTop;
         ui.percentBox.style.setProperty("--sky-top", theme.skyTop);
         ui.percentBox.style.setProperty("--sky-bottom", theme.skyBottom);
         ui.percentBox.style.setProperty("--sky-cloud-rgb", theme.cloudRgb);
         ui.percentBox.style.setProperty("--sky-cloud-opacity", theme.cloudOpacity.toFixed(3));
         ui.percentBox.style.setProperty("--sky-cloud-soft", theme.cloudSoft.toFixed(1) + "px");
         ui.percentBox.style.setProperty("--sky-star-opacity", theme.starOpacity.toFixed(3));
+      }
+
+      function isIPhoneSafariTabMode() {
+        const ua = navigator.userAgent || "";
+        const isIOS = /iP(hone|od|ad)/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+        const isSafari = /Safari/i.test(ua) && !/(CriOS|FxiOS|EdgiOS|OPiOS|DuckDuckGo)/i.test(ua);
+        const isStandalone = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
+        return isIOS && isSafari && !isStandalone && window.innerWidth <= 430;
+      }
+
+      function nudgeInitialHeroScroll() {
+        if (!isIPhoneSafariTabMode() || window.scrollY > 4) {
+          return;
+        }
+        const heroTop = ui.percentBox ? Math.max(0, Math.round(ui.percentBox.getBoundingClientRect().top)) : 0;
+        const target = heroTop > 6
+          ? Math.min(heroTop, 72)
+          : Math.max(1, Math.min(18, Math.round(window.innerHeight * 0.02)));
+        const apply = () => {
+          if (window.scrollY <= target) {
+            window.scrollTo(0, target);
+          }
+        };
+        window.requestAnimationFrame(() => {
+          window.requestAnimationFrame(apply);
+        });
+        window.setTimeout(apply, 120);
+        window.setTimeout(apply, 420);
       }
 
       async function refreshOlympiaSky() {
@@ -2872,6 +2902,7 @@
       render();
       startLoop();
       tetraRaf = requestAnimationFrame(tetraLoop);
+      nudgeInitialHeroScroll();
 
       function closeHelpTip() {
         if (!ui.helpTip || ui.helpTip.hidden) {
