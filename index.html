@@ -728,42 +728,42 @@
       .hero-copy-mobile {
         display: block !important;
         position: absolute !important;
-        top: 58px !important;
-        left: 14px !important;
-        right: 14px !important;
+        top: 4px !important;
+        left: 12px !important;
+        right: 12px !important;
         z-index: 6 !important;
       }
 
       .hero-copy-mobile-title {
-        font-size: clamp(1.14rem, 7.4vw, 1.82rem) !important;
-        line-height: 0.98 !important;
+        font-size: clamp(1.08rem, 7vw, 1.76rem) !important;
+        line-height: 0.93 !important;
       }
 
       .hero-copy-mobile-subtitle {
-        margin-top: 10px !important;
-        font-size: 0.72rem !important;
-        line-height: 1.12 !important;
+        margin-top: 4px !important;
+        font-size: 0.66rem !important;
+        line-height: 1.04 !important;
       }
 
       .percent-box {
         margin-top: 0 !important;
         min-height: clamp(352px, 72svh, 470px) !important;
-        padding: 156px 10px 10px !important;
+        padding: 108px 10px 8px !important;
         border-radius: 0 !important;
         border: 0 !important;
       }
 
       .percent-viz {
-        margin-top: 2px !important;
+        margin-top: 0 !important;
       }
 
       .pyramid-shell {
-        width: min(94vw, 410px) !important;
-        max-height: min(48svh, 330px) !important;
+        width: min(92vw, 404px) !important;
+        max-height: min(42svh, 292px) !important;
       }
 
       .grid {
-        margin-top: 10px !important;
+        margin-top: 6px !important;
         padding: 0 10px !important;
       }
 
@@ -1328,7 +1328,7 @@
       const TETRA_TARGET_CENTER_Y = 0.54;
       const TETRA_YAW_OFFSET = Math.PI / 4;
       const TETRA_LEAF_DROP_MS = 10 * 1000;
-      const TETRA_LEAF_FALL_MS = 8000;
+      const TETRA_LEAF_FALL_MS = 20 * 1000;
       const TETRA_CAMERA_POS = { x: 0, y: 0.92, z: 5.8 };
       const TETRA_LOOK_AT = { x: 0, y: 0.02, z: 0 };
       // Square pyramid geometry: apex + 4 base corners.
@@ -1423,7 +1423,7 @@
       const moonCtx = ui.moonPhaseCanvas ? ui.moonPhaseCanvas.getContext("2d") : null;
       let tetraDpr = 1;
       let tetraRaf = 0;
-      let leafPixelDrop = null;
+      let leafPixelDrops = [];
       let leafPixelNextSpawnMs = 1400;
       let latestSkyCurrent = null;
 
@@ -2435,7 +2435,7 @@
 
         const cap = clamp(capHeightRatio, 0, 1);
         if (cap <= 1e-4 || cap >= 1) {
-          leafPixelDrop = null;
+          leafPixelDrops = [];
           return;
         }
 
@@ -2465,7 +2465,7 @@
           flashT += 0.24 + (Math.random() - 0.5) * 0.05;
         }
 
-        leafPixelDrop = {
+        leafPixelDrops.push({
           startMs: nowMs,
           settleStartMs: 0,
           start,
@@ -2478,106 +2478,127 @@
           laserAngle: -Math.PI * 0.22 + (Math.random() - 0.5) * 0.2,
           color: sampleTetraColor(cap),
           size: 1.55 + Math.random() * 0.7
-        };
+        });
+
+        if (leafPixelDrops.length > 4) {
+          leafPixelDrops.shift();
+        }
       }
 
       function drawLeafPixelDrop(ctx, nowMs, rotatedVertices, width, height, focalLength, capHeightRatio) {
         maybeSpawnLeafPixel(nowMs, rotatedVertices, capHeightRatio);
-        if (!leafPixelDrop) {
+        if (!leafPixelDrops.length) {
           return;
         }
 
-        const elapsed = nowMs - leafPixelDrop.startMs;
-        const p = clamp(elapsed / TETRA_LEAF_FALL_MS, 0, 1);
-        const fall = 1 - ((1 - p) * (1 - p) * (1 - p));
-        const driftDecay = 1 - p;
-        const swayA = Math.sin(p * Math.PI * 3.2 + leafPixelDrop.phase) * 0.16 * driftDecay;
-        const swayB = Math.sin(p * Math.PI * 1.85 + leafPixelDrop.phase * 0.63) * 0.08 * (0.35 + driftDecay * 0.65);
-        let worldPos = lerp3(leafPixelDrop.start, leafPixelDrop.target, fall);
-        worldPos = add3(worldPos, scale3(leafPixelDrop.driftA, swayA));
-        worldPos = add3(worldPos, scale3(leafPixelDrop.driftB, swayB));
+        for (let i = leafPixelDrops.length - 1; i >= 0; i -= 1) {
+          const drop = leafPixelDrops[i];
+          const elapsed = nowMs - drop.startMs;
+          const p = clamp(elapsed / TETRA_LEAF_FALL_MS, 0, 1);
+          const fall = 1 - ((1 - p) * (1 - p) * (1 - p));
+          const driftDecay = 1 - p;
+          const swayA = Math.sin(p * Math.PI * 3.2 + drop.phase) * 0.16 * driftDecay;
+          const swayB = Math.sin(p * Math.PI * 1.85 + drop.phase * 0.63) * 0.08 * (0.35 + driftDecay * 0.65);
+          let worldPos = lerp3(drop.start, drop.target, fall);
+          worldPos = add3(worldPos, scale3(drop.driftA, swayA));
+          worldPos = add3(worldPos, scale3(drop.driftB, swayB));
 
-        const projected = projectWorldVertex(worldPos, width, height, focalLength);
-        if (!projected) {
-          if (p >= 1) {
-            leafPixelDrop = null;
+          const projected = projectWorldVertex(worldPos, width, height, focalLength);
+          if (!projected) {
+            if (p >= 1) {
+              leafPixelDrops.splice(i, 1);
+            }
+            continue;
           }
-          return;
-        }
 
-        const size = leafPixelDrop.size * (0.86 + (1 - p) * 0.34);
-        const rotation = Math.sin(p * Math.PI * 4 + leafPixelDrop.phase) * 0.68;
-        const alpha = clamp(0.96 - p * 0.16, 0.62, 0.96);
-        const c = leafPixelDrop.color;
-        const tumbleSpin = p * Math.PI * 10.8 + leafPixelDrop.phase;
-        const facetA = Math.max(0, Math.cos(tumbleSpin));
-        const facetB = Math.max(0, Math.cos(tumbleSpin * 1.71 + 0.96));
-        const facetSpec = Math.pow(clamp(facetA * 0.68 + facetB * 0.32, 0, 1), 11);
-        let flashWindow = 0;
-        for (let i = 0; i < leafPixelDrop.flashMoments.length; i += 1) {
-          const d = p - leafPixelDrop.flashMoments[i];
-          const sigma = leafPixelDrop.flashSigma;
-          flashWindow += Math.exp(-(d * d) / (2 * sigma * sigma));
-        }
-        const flash = clamp(facetSpec * flashWindow * (0.48 + driftDecay * 0.52), 0, 1);
-        const baseSpec = 0.1 + (facetSpec * 0.3);
-        const sparkleAlpha = clamp(baseSpec + flash * 1.04, 0.1, 1);
+          const size = drop.size * (0.86 + (1 - p) * 0.34);
+          const rotation = Math.sin(p * Math.PI * 4 + drop.phase) * 0.68;
+          const alpha = clamp(0.96 - p * 0.16, 0.62, 0.96);
+          const c = drop.color;
+          const emberOuter = mixRgb(c, { r: 255, g: 110, b: 42 }, 0.36);
+          const emberInner = mixRgb(c, { r: 255, g: 218, b: 156 }, 0.18);
+          const tumbleSpin = p * Math.PI * 10.8 + drop.phase;
+          const facetA = Math.max(0, Math.cos(tumbleSpin));
+          const facetB = Math.max(0, Math.cos(tumbleSpin * 1.71 + 0.96));
+          const facetSpec = Math.pow(clamp(facetA * 0.68 + facetB * 0.32, 0, 1), 11);
+          let flashWindow = 0;
+          for (let j = 0; j < drop.flashMoments.length; j += 1) {
+            const d = p - drop.flashMoments[j];
+            const sigma = drop.flashSigma;
+            flashWindow += Math.exp(-(d * d) / (2 * sigma * sigma));
+          }
+          const flash = clamp(facetSpec * flashWindow * (0.48 + driftDecay * 0.52), 0, 1);
+          const baseSpec = 0.1 + (facetSpec * 0.3);
+          const sparkleAlpha = clamp(baseSpec + flash * 1.04, 0.1, 1);
 
-        ctx.save();
-        ctx.translate(projected.x, projected.y);
-        ctx.rotate(rotation);
-        ctx.fillStyle = "rgba(" + c.r + "," + c.g + "," + c.b + "," + alpha.toFixed(3) + ")";
-        ctx.fillRect(-size * 0.5, -size * 0.5, size, size);
-        ctx.lineWidth = 0.26;
-        ctx.strokeStyle = "rgba(255,255,255," + (0.1 + facetSpec * 0.2).toFixed(3) + ")";
-        ctx.beginPath();
-        ctx.moveTo(-size * 0.44, size * 0.36);
-        ctx.lineTo(size * 0.4, -size * 0.38);
-        ctx.stroke();
-        ctx.strokeStyle = "rgba(255,255,255," + (0.06 + facetSpec * 0.14).toFixed(3) + ")";
-        ctx.beginPath();
-        ctx.moveTo(-size * 0.46, -size * 0.12);
-        ctx.lineTo(size * 0.2, -size * 0.46);
-        ctx.stroke();
-        ctx.fillStyle = "rgba(255, 255, 255, 0.42)";
-        ctx.fillRect(-size * 0.2, -size * 0.2, size * 0.24, size * 0.24);
-        if (flash > 0.02) {
-          const flashCore = Math.pow(flash, 0.78);
-          const beamLen = size * (4.2 + flashCore * 16.5);
-          const beamWidth = 0.15 + flashCore * 1.1;
-          const streakAngle = leafPixelDrop.laserAngle + Math.sin(tumbleSpin * 0.7) * 0.16;
+          ctx.save();
+          ctx.translate(projected.x, projected.y);
+          ctx.rotate(rotation);
           ctx.globalCompositeOperation = "lighter";
-          ctx.lineCap = "round";
-          ctx.rotate(streakAngle);
-          ctx.lineWidth = beamWidth;
-          ctx.strokeStyle = "rgba(255,255,255," + (sparkleAlpha * 0.97).toFixed(3) + ")";
+          ctx.filter = "blur(" + (1.4 + (1 - p) * 1.1).toFixed(2) + "px)";
+          ctx.fillStyle = "rgba(" + emberOuter.r + "," + emberOuter.g + "," + emberOuter.b + "," + (0.2 + driftDecay * 0.18).toFixed(3) + ")";
           ctx.beginPath();
-          ctx.moveTo(-beamLen, 0);
-          ctx.lineTo(beamLen, 0);
-          ctx.stroke();
-          ctx.lineWidth = beamWidth * 0.42;
-          ctx.strokeStyle = "rgba(255,255,255," + (sparkleAlpha * 0.42).toFixed(3) + ")";
+          ctx.arc(0, 0, size * 2.4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "rgba(" + emberInner.r + "," + emberInner.g + "," + emberInner.b + "," + (0.16 + driftDecay * 0.16).toFixed(3) + ")";
           ctx.beginPath();
-          ctx.moveTo(0, -beamLen * 0.28);
-          ctx.lineTo(0, beamLen * 0.28);
-          ctx.stroke();
-          ctx.rotate(-streakAngle);
-          ctx.filter = "blur(" + (0.38 + flashCore * 1.28).toFixed(2) + "px)";
-          ctx.fillStyle = "rgba(255,255,255," + (sparkleAlpha * 0.46).toFixed(3) + ")";
-          ctx.beginPath();
-          ctx.arc(0, 0, size * (0.46 + flashCore * 0.86), 0, Math.PI * 2);
+          ctx.arc(0, 0, size * 1.35, 0, Math.PI * 2);
           ctx.fill();
           ctx.filter = "none";
           ctx.globalCompositeOperation = "source-over";
-        }
-        ctx.restore();
-
-        if (p >= 1) {
-          if (!leafPixelDrop.settleStartMs) {
-            leafPixelDrop.settleStartMs = nowMs;
+          ctx.fillStyle = "rgba(" + c.r + "," + c.g + "," + c.b + "," + alpha.toFixed(3) + ")";
+          ctx.fillRect(-size * 0.5, -size * 0.5, size, size);
+          ctx.lineWidth = 0.26;
+          ctx.strokeStyle = "rgba(255,255,255," + (0.1 + facetSpec * 0.2).toFixed(3) + ")";
+          ctx.beginPath();
+          ctx.moveTo(-size * 0.44, size * 0.36);
+          ctx.lineTo(size * 0.4, -size * 0.38);
+          ctx.stroke();
+          ctx.strokeStyle = "rgba(255,255,255," + (0.06 + facetSpec * 0.14).toFixed(3) + ")";
+          ctx.beginPath();
+          ctx.moveTo(-size * 0.46, -size * 0.12);
+          ctx.lineTo(size * 0.2, -size * 0.46);
+          ctx.stroke();
+          ctx.fillStyle = "rgba(255, 255, 255, 0.42)";
+          ctx.fillRect(-size * 0.2, -size * 0.2, size * 0.24, size * 0.24);
+          if (flash > 0.02) {
+            const flashCore = Math.pow(flash, 0.78);
+            const beamLen = size * (4.2 + flashCore * 16.5);
+            const beamWidth = 0.15 + flashCore * 1.1;
+            const streakAngle = drop.laserAngle + Math.sin(tumbleSpin * 0.7) * 0.16;
+            ctx.globalCompositeOperation = "lighter";
+            ctx.lineCap = "round";
+            ctx.rotate(streakAngle);
+            ctx.lineWidth = beamWidth;
+            ctx.strokeStyle = "rgba(255,255,255," + (sparkleAlpha * 0.97).toFixed(3) + ")";
+            ctx.beginPath();
+            ctx.moveTo(-beamLen, 0);
+            ctx.lineTo(beamLen, 0);
+            ctx.stroke();
+            ctx.lineWidth = beamWidth * 0.42;
+            ctx.strokeStyle = "rgba(255,255,255," + (sparkleAlpha * 0.42).toFixed(3) + ")";
+            ctx.beginPath();
+            ctx.moveTo(0, -beamLen * 0.28);
+            ctx.lineTo(0, beamLen * 0.28);
+            ctx.stroke();
+            ctx.rotate(-streakAngle);
+            ctx.filter = "blur(" + (0.38 + flashCore * 1.28).toFixed(2) + "px)";
+            ctx.fillStyle = "rgba(255,255,255," + (sparkleAlpha * 0.46).toFixed(3) + ")";
+            ctx.beginPath();
+            ctx.arc(0, 0, size * (0.46 + flashCore * 0.86), 0, Math.PI * 2);
+            ctx.fill();
+            ctx.filter = "none";
+            ctx.globalCompositeOperation = "source-over";
           }
-          if (nowMs - leafPixelDrop.settleStartMs >= 700) {
-            leafPixelDrop = null;
+          ctx.restore();
+
+          if (p >= 1) {
+            if (!drop.settleStartMs) {
+              drop.settleStartMs = nowMs;
+            }
+            if (nowMs - drop.settleStartMs >= 700) {
+              leafPixelDrops.splice(i, 1);
+            }
           }
         }
       }
