@@ -4,21 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#87b7e4">
-  <link rel="manifest" href="manifest.webmanifest">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Countdown to Next">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <script>
-    (() => {
-      const isStandalone =
-        (window.matchMedia && (window.matchMedia("(display-mode: standalone)").matches || window.matchMedia("(display-mode: fullscreen)").matches)) ||
-        window.navigator.standalone === true;
-      if (isStandalone) {
-        document.documentElement.classList.add("ios-standalone");
-      }
-    })();
-  </script>
   <title>Countdown to Next</title>
   <style>
     @import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Sora:wght@400;600;700&display=swap");
@@ -30,8 +17,6 @@
       --bg-1: #2a0f2b;
       --bg-2: #5e1a3f;
       --bg-3: #c05746;
-      --page-sky-top: rgba(110, 160, 215, 0.92);
-      --page-sky-bottom: rgba(188, 223, 248, 0.78);
       --accent-lime: #b8ff58;
       --accent-gold: #ffd166;
       --accent-mango: #ff9d4d;
@@ -60,7 +45,7 @@
       height: 100%;
       min-height: 100%;
       min-height: -webkit-fill-available;
-      background-color: var(--page-sky-top);
+      background-color: #2a0f2b;
       color: var(--ink-main);
       font-family: "Sora", "Avenir Next", "Segoe UI", sans-serif;
       overflow-x: hidden;
@@ -70,7 +55,6 @@
       min-height: 100svh;
       min-height: 100dvh;
       background:
-        linear-gradient(180deg, var(--page-sky-top) 0%, var(--page-sky-bottom) 19%, rgba(112, 96, 150, 0.52) 38%, rgba(94, 26, 63, 0.84) 62%, rgba(192, 87, 70, 0.94) 100%),
         radial-gradient(120% 95% at 12% -15%, rgba(255, 203, 86, 0.5) 0%, transparent 60%),
         radial-gradient(100% 120% at 110% 5%, rgba(255, 94, 182, 0.4) 0%, transparent 65%),
         radial-gradient(90% 100% at 48% 110%, rgba(184, 255, 88, 0.35) 0%, transparent 68%),
@@ -151,8 +135,6 @@
       width: 100%;
       min-height: calc(100svh - 12px);
       min-height: calc(100dvh - 12px);
-      display: flex;
-      flex-direction: column;
       border-radius: 24px;
       padding:
         calc(7px + env(safe-area-inset-top))
@@ -549,60 +531,20 @@
     }
 
     @media (max-width: 430px) {
-      .title {
-        font-size: clamp(1.06rem, 5.2vw, 1.44rem);
-        letter-spacing: 0.075em;
-        line-height: 1.04;
-      }
-
-      .subtitle {
-        margin-top: 2px;
-        font-size: 0.7rem;
-        line-height: 1.12;
-      }
-
       .percent-box {
-        margin-top: 4px;
-        min-height: clamp(214px, 33svh, 248px);
-        padding: 7px 8px 8px;
+        min-height: clamp(260px, 40svh, 380px);
+        padding: 8px 9px 9px;
       }
 
       .percent-viz {
-        margin-top: 2px;
+        margin-top: 4px;
       }
 
       .pyramid-shell {
-        width: min(89vw, 360px);
+        width: min(92vw, 390px);
         min-width: 0;
         aspect-ratio: 1.32 / 1;
-        max-height: min(29svh, 228px);
-      }
-
-      .grid {
-        margin-top: 5px;
-        flex: 1 1 auto;
-        gap: 6px;
-        align-content: stretch;
-        grid-auto-rows: minmax(60px, 1fr);
-      }
-
-      .metric {
-        min-height: 60px;
-        padding: 6px 7px 5px;
-        gap: 3px;
-      }
-
-      .metric-name {
-        font-size: 0.56rem;
-      }
-
-      .metric-value {
-        font-size: clamp(0.84rem, 4.5vw, 1.1rem);
-      }
-
-      .help-btn {
-        width: 24px;
-        height: 24px;
+        max-height: min(38svh, 320px);
       }
     }
 
@@ -676,24 +618,24 @@
       .shell {
         width: 100% !important;
         max-width: none !important;
-        margin-top: 0 !important;
-        margin-bottom: 0 !important;
-        min-height: 100svh !important;
-        min-height: 100dvh !important;
-        min-height: 100lvh !important;
+        margin-top: calc(-1 * env(safe-area-inset-top)) !important;
+        margin-bottom: calc(-1 * env(safe-area-inset-bottom)) !important;
+        min-height: calc(100svh + env(safe-area-inset-top) + env(safe-area-inset-bottom)) !important;
+        min-height: calc(100dvh + env(safe-area-inset-top) + env(safe-area-inset-bottom)) !important;
+        min-height: calc(100lvh + env(safe-area-inset-top) + env(safe-area-inset-bottom)) !important;
         padding: 0 !important;
       }
 
       .panel {
-        min-height: 100svh !important;
-        min-height: 100dvh !important;
-        min-height: 100lvh !important;
+        min-height: calc(100svh + env(safe-area-inset-top) + env(safe-area-inset-bottom)) !important;
+        min-height: calc(100dvh + env(safe-area-inset-top) + env(safe-area-inset-bottom)) !important;
+        min-height: calc(100lvh + env(safe-area-inset-top) + env(safe-area-inset-bottom)) !important;
         border-radius: 0 !important;
         border: 0 !important;
         background: transparent !important;
         box-shadow: none !important;
         backdrop-filter: none !important;
-        padding: 0 10px 0 !important;
+        padding: env(safe-area-inset-top) 10px env(safe-area-inset-bottom) !important;
       }
 
       .panel::before,
@@ -703,38 +645,6 @@
 
       .title {
         margin-top: 0 !important;
-      }
-
-      .help-wrap {
-        bottom: 8px !important;
-      }
-    }
-
-    html.ios-standalone .shell {
-      padding-top: env(safe-area-inset-top) !important;
-      padding-bottom: env(safe-area-inset-bottom) !important;
-    }
-
-    html.ios-standalone .panel {
-      min-height: calc(100svh - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
-      min-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
-      min-height: calc(100lvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
-    }
-
-    html.ios-standalone .help-wrap {
-      bottom: calc(8px + env(safe-area-inset-bottom)) !important;
-    }
-
-    @media (display-mode: standalone), (display-mode: fullscreen) {
-      .shell {
-        padding-top: env(safe-area-inset-top) !important;
-        padding-bottom: env(safe-area-inset-bottom) !important;
-      }
-
-      .panel {
-        min-height: calc(100svh - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
-        min-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
-        min-height: calc(100lvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
       }
 
       .help-wrap {
@@ -1424,14 +1334,6 @@
       function applySkyTheme(theme) {
         if (!ui.percentBox) {
           return;
-        }
-        document.documentElement.style.setProperty("--page-sky-top", theme.skyTop);
-        document.documentElement.style.setProperty("--page-sky-bottom", theme.skyBottom);
-        document.documentElement.style.backgroundColor = theme.skyTop;
-        document.body.style.backgroundColor = theme.skyTop;
-        const themeMeta = document.querySelector('meta[name="theme-color"]');
-        if (themeMeta) {
-          themeMeta.setAttribute("content", theme.skyTop);
         }
         ui.percentBox.style.setProperty("--sky-top", theme.skyTop);
         ui.percentBox.style.setProperty("--sky-bottom", theme.skyBottom);
