@@ -678,6 +678,12 @@
 
       body {
         padding: 0 !important;
+        animation: none !important;
+      }
+
+      body::before,
+      body::after {
+        display: none !important;
       }
 
       .shell {
@@ -685,16 +691,12 @@
         max-width: none !important;
         margin-top: 0 !important;
         margin-bottom: 0 !important;
-        min-height: 100svh !important;
-        min-height: 100dvh !important;
-        min-height: 100lvh !important;
+        min-height: 0 !important;
         padding: 0 !important;
       }
 
       .panel {
-        min-height: 100svh !important;
-        min-height: 100dvh !important;
-        min-height: 100lvh !important;
+        min-height: 0 !important;
         border-radius: 0 !important;
         border: 0 !important;
         background: transparent !important;
@@ -737,10 +739,8 @@
         margin-top: 0 !important;
         min-height: clamp(352px, 72svh, 470px) !important;
         padding: 156px 10px 10px !important;
-        border-radius: 0 0 18px 18px !important;
-        border-top: 0 !important;
-        border-left: 0 !important;
-        border-right: 0 !important;
+        border-radius: 0 !important;
+        border: 0 !important;
       }
 
       .percent-viz {
@@ -758,7 +758,12 @@
       }
 
       .metric-section {
-        padding: 0 10px 0 !important;
+        padding: 0 !important;
+      }
+
+      .metric-section-title,
+      .metric-section-note {
+        visibility: hidden !important;
       }
 
       .event-stream {
