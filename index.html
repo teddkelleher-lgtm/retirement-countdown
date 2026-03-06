@@ -222,6 +222,11 @@
       line-height: 1.25;
     }
 
+    .subtitle-break,
+    .hero-copy-mobile-subtitle-break {
+      display: block;
+    }
+
     .percent-box {
       margin-top: 6px;
       min-height: 272px;
@@ -659,6 +664,143 @@
       line-height: 1.32;
     }
 
+    .pyramid-construction {
+      margin-top: 16px;
+      border-radius: 18px;
+      padding: 12px 12px 14px;
+      background:
+        linear-gradient(rgba(43, 25, 57, 0.76), rgba(63, 35, 56, 0.72)) padding-box,
+        linear-gradient(135deg, rgba(255, 207, 120, 0.54), rgba(255, 119, 83, 0.42), rgba(174, 118, 255, 0.34)) border-box;
+      border: 1px solid transparent;
+      box-shadow: inset 0 0 18px rgba(255, 196, 104, 0.08), 0 10px 24px rgba(0, 0, 0, 0.18);
+    }
+
+    .pyramid-construction-title {
+      margin: 0 0 4px;
+      font-family: "Orbitron", "Sora", sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #ffe7bd;
+      text-shadow: 0 0 12px rgba(255, 160, 72, 0.2);
+    }
+
+    .pyramid-construction-note,
+    .pyramid-construction-rule,
+    .pyramid-construction-footer {
+      margin: 0;
+      color: rgba(255, 235, 214, 0.8);
+      font-size: 0.66rem;
+      line-height: 1.34;
+    }
+
+    .pyramid-construction-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .pyramid-construction-card {
+      min-height: 88px;
+      border-radius: 14px;
+      padding: 9px 10px 10px;
+      background: rgba(31, 16, 39, 0.34);
+      border: 1px solid rgba(255, 211, 142, 0.16);
+      box-shadow: inset 0 0 12px rgba(255, 214, 158, 0.03);
+    }
+
+    .pyramid-construction-name {
+      margin: 0;
+      font-family: "Orbitron", "Sora", sans-serif;
+      font-size: 0.58rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #ffd7a8;
+    }
+
+    .pyramid-construction-value {
+      margin: 5px 0 6px;
+      font-family: "Orbitron", "Sora", sans-serif;
+      font-size: 0.86rem;
+      line-height: 1.1;
+      color: #fff7ec;
+      text-shadow: 0 0 12px rgba(255, 197, 96, 0.18);
+    }
+
+    .pyramid-construction-desc {
+      margin: 0;
+      color: rgba(255, 233, 214, 0.76);
+      font-size: 0.61rem;
+      line-height: 1.28;
+    }
+
+    .pyramid-construction-rule {
+      margin-top: 10px;
+    }
+
+    .pyramid-palette-title {
+      margin: 10px 0 8px;
+      font-family: "Orbitron", "Sora", sans-serif;
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #ffd7a8;
+    }
+
+    .pyramid-palette-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .pyramid-palette-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 52px;
+      border-radius: 12px;
+      padding: 8px 9px;
+      background: rgba(24, 11, 29, 0.34);
+      border: 1px solid rgba(255, 211, 142, 0.14);
+    }
+
+    .pyramid-palette-swatch {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 18px;
+      border-radius: 5px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      background: rgba(255, 255, 255, 0.14);
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.16);
+    }
+
+    .pyramid-palette-meta {
+      min-width: 0;
+    }
+
+    .pyramid-palette-label {
+      margin: 0 0 2px;
+      font-family: "Orbitron", "Sora", sans-serif;
+      font-size: 0.54rem;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #ffd7a8;
+    }
+
+    .pyramid-palette-value {
+      margin: 0;
+      color: rgba(255, 243, 231, 0.84);
+      font-size: 0.61rem;
+      line-height: 1.22;
+      word-break: break-word;
+    }
+
+    .pyramid-construction-footer {
+      margin-top: 10px;
+    }
+
     .event-chip {
       width: fit-content;
       max-width: 100%;
@@ -898,7 +1040,7 @@
   <main class="shell">
     <section class="panel">
       <h1 class="title">Countdown to Next</h1>
-      <p class="subtitle">Time at Department of Community Development: Jan 5, 1994 8:00 AM to Jun 25, 2026 5:30 PM</p>
+      <p class="subtitle">Time at Department of Community Development:<span class="subtitle-break">Jan 5, 1994 8:00 AM to Jun 25, 2026 5:30 PM</span></p>
 
       <section class="percent-box" id="percentBox" aria-label="Time left percentage">
         <div class="sky-orbit-layer" aria-hidden="true">
@@ -910,7 +1052,7 @@
         </div>
         <div class="hero-copy-mobile">
           <h1 class="hero-copy-mobile-title">Countdown to Next</h1>
-          <p class="hero-copy-mobile-subtitle">Time at Department of Community Development: Jan 5, 1994 8:00 AM to Jun 25, 2026 5:30 PM</p>
+          <p class="hero-copy-mobile-subtitle">Time at Department of Community Development:<span class="hero-copy-mobile-subtitle-break">Jan 5, 1994 8:00 AM to Jun 25, 2026 5:30 PM</span></p>
         </div>
         <div class="percent-row">
           <span class="percent-label">Time Left</span>
@@ -1043,6 +1185,66 @@
           </article>
         </div>
         <p class="display-input-footer">Direct live weather inputs: <code>is_day</code>, <code>cloud_cover</code>, <code>weather_code</code>, and <code>precipitation</code>. Sun, moon, and stars are computed from Olympia latitude/longitude plus the current local date and time, then blended with those live weather values.</p>
+      </section>
+
+      <section class="pyramid-construction" aria-label="Pyramid construction details">
+        <h2 class="pyramid-construction-title">Pyramid Construction</h2>
+        <p class="pyramid-construction-note">Each layer is one month from the Department of Community Development timeline. Layer color is driven by that month's historical high temperature, the flat top is the completed cut plane, the clear mist above it is the remaining volume, and the tiny white corner dots mark monthly boundaries.</p>
+        <div class="pyramid-construction-grid">
+          <article class="pyramid-construction-card">
+            <p class="pyramid-construction-name">Total Layers</p>
+            <p class="pyramid-construction-value" id="pyramidTotalLayers">--</p>
+            <p class="pyramid-construction-desc">One row per month, stacked from the January 1994 base upward through the final 2026 apex layers.</p>
+          </article>
+          <article class="pyramid-construction-card">
+            <p class="pyramid-construction-name">Completed Layers</p>
+            <p class="pyramid-construction-value" id="pyramidCompletedLayers">--</p>
+            <p class="pyramid-construction-desc">Months fully below the current cut plane and counted as already completed.</p>
+          </article>
+          <article class="pyramid-construction-card">
+            <p class="pyramid-construction-name">Layers Left</p>
+            <p class="pyramid-construction-value" id="pyramidLayersLeft">--</p>
+            <p class="pyramid-construction-desc">Months not yet fully completed above the current cut plane.</p>
+          </article>
+          <article class="pyramid-construction-card">
+            <p class="pyramid-construction-name">Current Cut Layer</p>
+            <p class="pyramid-construction-value" id="pyramidActiveLayer">--</p>
+            <p class="pyramid-construction-desc" id="pyramidActiveLayerDesc">--</p>
+          </article>
+        </div>
+        <p class="pyramid-construction-rule">Height is cut using the cube root of time left, so the remaining 3D volume matches the percentage shown in the countdown.</p>
+        <h3 class="pyramid-palette-title">Layer Palette Examples</h3>
+        <div class="pyramid-palette-grid">
+          <div class="pyramid-palette-chip">
+            <span class="pyramid-palette-swatch" id="pyramidPaletteApexSwatch" aria-hidden="true"></span>
+            <div class="pyramid-palette-meta">
+              <p class="pyramid-palette-label">Apex Sample</p>
+              <p class="pyramid-palette-value" id="pyramidPaletteApexText">--</p>
+            </div>
+          </div>
+          <div class="pyramid-palette-chip">
+            <span class="pyramid-palette-swatch" id="pyramidPaletteUpperSwatch" aria-hidden="true"></span>
+            <div class="pyramid-palette-meta">
+              <p class="pyramid-palette-label">Upper-Mid Sample</p>
+              <p class="pyramid-palette-value" id="pyramidPaletteUpperText">--</p>
+            </div>
+          </div>
+          <div class="pyramid-palette-chip">
+            <span class="pyramid-palette-swatch" id="pyramidPaletteLowerSwatch" aria-hidden="true"></span>
+            <div class="pyramid-palette-meta">
+              <p class="pyramid-palette-label">Lower-Mid Sample</p>
+              <p class="pyramid-palette-value" id="pyramidPaletteLowerText">--</p>
+            </div>
+          </div>
+          <div class="pyramid-palette-chip">
+            <span class="pyramid-palette-swatch" id="pyramidPaletteBaseSwatch" aria-hidden="true"></span>
+            <div class="pyramid-palette-meta">
+              <p class="pyramid-palette-label">Base Sample</p>
+              <p class="pyramid-palette-value" id="pyramidPaletteBaseText">--</p>
+            </div>
+          </div>
+        </div>
+        <p class="pyramid-construction-footer">Cooler monthly highs stay in violet and plum bands, while hotter monthly highs shift toward crimson and orange. The swatches above are sampled from the actual month-by-month temperature-color mapping used to build the pyramid.</p>
       </section>
     </section>
   </main>
@@ -1450,6 +1652,7 @@
       const OLYMPIA_LAT = 47.0379;
       const OLYMPIA_LON = -122.9007;
       const OLYMPIA_SKY_URL = "https://api.open-meteo.com/v1/forecast?latitude=" + OLYMPIA_LAT + "&longitude=" + OLYMPIA_LON + "&current=is_day,cloud_cover,weather_code,precipitation&timezone=America%2FLos_Angeles";
+      const PYRAMID_WEATHER_CSV_URL = "career_tetra_month_height_bottom_layers_with_weather.csv";
       const SKY_REFRESH_MS = 15 * 60 * 1000;
       const CELESTIAL_REFRESH_MS = 60 * 1000;
       const WORK_START_DAY = 1;
@@ -1651,6 +1854,19 @@
         displayPrecipitation: document.getElementById("displayPrecipitation"),
         displayMoonIllumination: document.getElementById("displayMoonIllumination"),
         displayConstellation: document.getElementById("displayConstellation"),
+        pyramidTotalLayers: document.getElementById("pyramidTotalLayers"),
+        pyramidCompletedLayers: document.getElementById("pyramidCompletedLayers"),
+        pyramidLayersLeft: document.getElementById("pyramidLayersLeft"),
+        pyramidActiveLayer: document.getElementById("pyramidActiveLayer"),
+        pyramidActiveLayerDesc: document.getElementById("pyramidActiveLayerDesc"),
+        pyramidPaletteApexSwatch: document.getElementById("pyramidPaletteApexSwatch"),
+        pyramidPaletteApexText: document.getElementById("pyramidPaletteApexText"),
+        pyramidPaletteUpperSwatch: document.getElementById("pyramidPaletteUpperSwatch"),
+        pyramidPaletteUpperText: document.getElementById("pyramidPaletteUpperText"),
+        pyramidPaletteLowerSwatch: document.getElementById("pyramidPaletteLowerSwatch"),
+        pyramidPaletteLowerText: document.getElementById("pyramidPaletteLowerText"),
+        pyramidPaletteBaseSwatch: document.getElementById("pyramidPaletteBaseSwatch"),
+        pyramidPaletteBaseText: document.getElementById("pyramidPaletteBaseText"),
         titleNodes: Array.from(document.querySelectorAll(".title, .hero-copy-mobile-title")),
         metrics: {},
         completedMetrics: {}
@@ -1694,6 +1910,7 @@
       let latestSkyCurrent = null;
       let latestMoonIllumination = null;
       let latestFeaturedConstellationName = "No major constellation highlighted";
+      let pyramidWeatherRows = [];
 
       function mixRgb(rgbA, rgbB, t) {
         const clamped = clamp(t, 0, 1);
@@ -2012,6 +2229,66 @@
         return "waning crescent";
       }
 
+      function formatMonthLabel(monthLabel) {
+        const match = /^(\d{4})-(\d{2})$/.exec(String(monthLabel || "").trim());
+        if (!match) {
+          return String(monthLabel || "--");
+        }
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const monthIndex = clamp(Number(match[2]) - 1, 0, 11);
+        return monthNames[monthIndex] + " " + match[1];
+      }
+
+      function parsePyramidWeatherCsv(text) {
+        const lines = String(text || "").split(/\r?\n/).filter((line) => line.trim());
+        if (lines.length <= 1) {
+          return [];
+        }
+        const rows = [];
+        for (let i = 1; i < lines.length; i += 1) {
+          const cells = lines[i].split(",");
+          if (cells.length < 16) {
+            continue;
+          }
+          const layerIndex = Number.parseInt(cells[0], 10);
+          const monthlyHighTempF = Number.parseFloat(cells[10]);
+          const tempNorm = Number.parseFloat(cells[11]);
+          const colorHex = (cells[15] || "").trim();
+          if (!Number.isFinite(layerIndex)) {
+            continue;
+          }
+          rows.push({
+            layerIndex,
+            monthLabel: (cells[1] || "").trim(),
+            monthlyHighTempF,
+            tempNorm,
+            colorHex: /^#[0-9a-fA-F]{6}$/.test(colorHex) ? colorHex.toUpperCase() : ""
+          });
+        }
+        return rows;
+      }
+
+      async function loadPyramidWeatherRows() {
+        try {
+          const response = await fetch(PYRAMID_WEATHER_CSV_URL, { cache: "no-store" });
+          if (!response.ok) {
+            throw new Error("weather csv unavailable");
+          }
+          pyramidWeatherRows = parsePyramidWeatherCsv(await response.text());
+        } catch (error) {
+          pyramidWeatherRows = [];
+        }
+        updatePyramidConstructionInfo();
+      }
+
+      function setStyleValue(node, key, propName, nextValue) {
+        const prevValue = displayCache.get(key);
+        if (prevValue !== nextValue) {
+          node.style[propName] = nextValue;
+          displayCache.set(key, nextValue);
+        }
+      }
+
       function triggerTitleSweep() {
         if (!ui.titleNodes || !ui.titleNodes.length) {
           return;
@@ -2053,6 +2330,115 @@
         setText(ui.displayPrecipitation, "display-precipitation", precipitationText);
         setText(ui.displayMoonIllumination, "display-moon-illumination", illumPct);
         setText(ui.displayConstellation, "display-constellation", latestFeaturedConstellationName || "No major constellation highlighted");
+      }
+
+      function pickPyramidPaletteSamples() {
+        if (!tetraRows.length) {
+          return [];
+        }
+        const total = tetraRows.length;
+        const sampleIndices = [
+          total - 1,
+          Math.max(0, Math.min(total - 1, Math.round(total * 0.74) - 1)),
+          Math.max(0, Math.min(total - 1, Math.round(total * 0.38) - 1)),
+          0
+        ];
+        return sampleIndices.map((index) => tetraRows[index]);
+      }
+
+      function findWeatherRowForLayer(layerIndex) {
+        if (!Number.isFinite(layerIndex) || !pyramidWeatherRows.length) {
+          return null;
+        }
+        for (let i = 0; i < pyramidWeatherRows.length; i += 1) {
+          if (pyramidWeatherRows[i].layerIndex === layerIndex) {
+            return pyramidWeatherRows[i];
+          }
+        }
+        return null;
+      }
+
+      function formatPyramidSampleText(row, weatherRow) {
+        const parts = [];
+        if (weatherRow && weatherRow.monthLabel) {
+          parts.push(formatMonthLabel(weatherRow.monthLabel));
+        } else {
+          parts.push("Layer " + numberFmt.format(row.layerIndex));
+        }
+        if (weatherRow && Number.isFinite(weatherRow.monthlyHighTempF)) {
+          parts.push(weatherRow.monthlyHighTempF.toFixed(1) + " F");
+        }
+        parts.push((weatherRow && weatherRow.colorHex ? weatherRow.colorHex : row.color).toUpperCase());
+        return parts.join(" | ");
+      }
+
+      function updatePyramidConstructionInfo() {
+        const totalLayers = tetraRows.length;
+        if (!totalLayers) {
+          setText(ui.pyramidTotalLayers, "pyramid-total-layers", "--");
+          setText(ui.pyramidCompletedLayers, "pyramid-completed-layers", "--");
+          setText(ui.pyramidLayersLeft, "pyramid-layers-left", "--");
+          setText(ui.pyramidActiveLayer, "pyramid-active-layer", "--");
+          setText(ui.pyramidActiveLayerDesc, "pyramid-active-layer-desc", "Waiting for layer data.");
+          return;
+        }
+
+        const cap = clamp(tetraCutRatio, 0, 1);
+        const epsilon = 1e-6;
+        let completedLayers = 0;
+        let activeRow = null;
+
+        for (let i = 0; i < tetraRows.length; i += 1) {
+          const row = tetraRows[i];
+          const topT = Number.isFinite(row.topT) ? row.topT : clamp(1 - row.endPct / 100, 0, 1);
+          const bottomT = Number.isFinite(row.bottomT) ? row.bottomT : clamp(1 - row.startPct / 100, 0, 1);
+          if (topT >= cap - epsilon) {
+            completedLayers += 1;
+          }
+          if (!activeRow && cap >= topT - epsilon && cap <= bottomT + epsilon) {
+            activeRow = row;
+          }
+        }
+
+        const layersLeft = Math.max(0, totalLayers - completedLayers);
+        const activeWeatherRow = activeRow ? findWeatherRowForLayer(activeRow.layerIndex) : null;
+        const activeLayerText = layersLeft === 0
+          ? "All complete"
+          : activeRow
+            ? "Layer " + numberFmt.format(activeRow.layerIndex)
+            : "Between layers";
+        const activeDesc = layersLeft === 0
+          ? "The cut plane has passed every month layer."
+          : activeWeatherRow && Number.isFinite(activeWeatherRow.monthlyHighTempF)
+            ? formatMonthLabel(activeWeatherRow.monthLabel) + " | " + activeWeatherRow.monthlyHighTempF.toFixed(1) + " F | " + activeWeatherRow.colorHex
+            : activeRow
+              ? "Current cut color " + String(activeRow.color || "").toUpperCase()
+              : "Current cut sits exactly on a layer boundary.";
+
+        setText(ui.pyramidTotalLayers, "pyramid-total-layers", numberFmt.format(totalLayers));
+        setText(ui.pyramidCompletedLayers, "pyramid-completed-layers", numberFmt.format(completedLayers));
+        setText(ui.pyramidLayersLeft, "pyramid-layers-left", numberFmt.format(layersLeft));
+        setText(ui.pyramidActiveLayer, "pyramid-active-layer", activeLayerText);
+        setText(ui.pyramidActiveLayerDesc, "pyramid-active-layer-desc", activeDesc);
+
+        const sampleRows = pickPyramidPaletteSamples();
+        const sampleNodes = [
+          { row: sampleRows[0], swatch: ui.pyramidPaletteApexSwatch, text: ui.pyramidPaletteApexText, key: "pyramid-palette-apex" },
+          { row: sampleRows[1], swatch: ui.pyramidPaletteUpperSwatch, text: ui.pyramidPaletteUpperText, key: "pyramid-palette-upper" },
+          { row: sampleRows[2], swatch: ui.pyramidPaletteLowerSwatch, text: ui.pyramidPaletteLowerText, key: "pyramid-palette-lower" },
+          { row: sampleRows[3], swatch: ui.pyramidPaletteBaseSwatch, text: ui.pyramidPaletteBaseText, key: "pyramid-palette-base" }
+        ];
+
+        for (let i = 0; i < sampleNodes.length; i += 1) {
+          const sample = sampleNodes[i];
+          if (!sample.row) {
+            continue;
+          }
+          const weatherRow = findWeatherRowForLayer(sample.row.layerIndex);
+          const colorHex = (weatherRow && weatherRow.colorHex ? weatherRow.colorHex : sample.row.color).toUpperCase();
+          setStyleValue(sample.swatch, sample.key + "-bg", "backgroundColor", colorHex);
+          setText(sample.text, sample.key + "-text", formatPyramidSampleText(sample.row, weatherRow));
+        }
       }
 
       function setText(node, key, nextValue) {
@@ -3258,6 +3644,7 @@
         tetraRows = rows.slice();
         buildTetraColorLookup(tetraRows);
         buildMonthMarkerTs(tetraRows);
+        updatePyramidConstructionInfo();
       }
 
       function loadPyramidLayers() {
@@ -3276,6 +3663,7 @@
         const ratio = clamp(percentLeft / 100, 0, 1);
         tetraCutRatio = Math.cbrt(ratio);
         setAttr(ui.pyramidWrap, "pyramid-aria-valuenow", "aria-valuenow", percentLeft.toFixed(6));
+        updatePyramidConstructionInfo();
       }
 
       function formatPercentThreshold(value) {
@@ -3480,6 +3868,7 @@
       resizeTetraCanvas();
       resizeStarCanvas();
       loadPyramidLayers();
+      loadPyramidWeatherRows();
       refreshOlympiaSky();
       window.setInterval(refreshOlympiaSky, SKY_REFRESH_MS);
       updateCelestialSky(new Date());
