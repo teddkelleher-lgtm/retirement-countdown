@@ -3,7 +3,6 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#87b7e4">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Countdown to Next</title>
@@ -641,7 +640,7 @@
 
     }
 
-    /* iPhone 16 Pro: force content to paint into top/bottom safe-area chrome zones */
+    /* iPhone tab mode: let content flow under Safari chrome like a long article page */
     @media (max-width: 430px) and (pointer: coarse) {
       html,
       body {
@@ -657,24 +656,24 @@
       .shell {
         width: 100% !important;
         max-width: none !important;
-        margin-top: calc(-1 * env(safe-area-inset-top)) !important;
-        margin-bottom: calc(-1 * env(safe-area-inset-bottom)) !important;
-        min-height: calc(100svh + env(safe-area-inset-top) + env(safe-area-inset-bottom)) !important;
-        min-height: calc(100dvh + env(safe-area-inset-top) + env(safe-area-inset-bottom)) !important;
-        min-height: calc(100lvh + env(safe-area-inset-top) + env(safe-area-inset-bottom)) !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+        min-height: 100svh !important;
+        min-height: 100dvh !important;
+        min-height: 100lvh !important;
         padding: 0 !important;
       }
 
       .panel {
-        min-height: calc(100svh + env(safe-area-inset-top) + env(safe-area-inset-bottom)) !important;
-        min-height: calc(100dvh + env(safe-area-inset-top) + env(safe-area-inset-bottom)) !important;
-        min-height: calc(100lvh + env(safe-area-inset-top) + env(safe-area-inset-bottom)) !important;
+        min-height: 100svh !important;
+        min-height: 100dvh !important;
+        min-height: 100lvh !important;
         border-radius: 0 !important;
         border: 0 !important;
         background: transparent !important;
         box-shadow: none !important;
         backdrop-filter: none !important;
-        padding: env(safe-area-inset-top) 10px env(safe-area-inset-bottom) !important;
+        padding: 0 10px 0 !important;
       }
 
       .panel::before,
@@ -687,7 +686,7 @@
       }
 
       .help-wrap {
-        bottom: calc(8px + env(safe-area-inset-bottom)) !important;
+        bottom: 8px !important;
       }
     }
   </style>
