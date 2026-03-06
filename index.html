@@ -9,6 +9,16 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Countdown to Next">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <script>
+    (() => {
+      const isStandalone =
+        (window.matchMedia && (window.matchMedia("(display-mode: standalone)").matches || window.matchMedia("(display-mode: fullscreen)").matches)) ||
+        window.navigator.standalone === true;
+      if (isStandalone) {
+        document.documentElement.classList.add("ios-standalone");
+      }
+    })();
+  </script>
   <title>Countdown to Next</title>
   <style>
     @import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Sora:wght@400;600;700&display=swap");
@@ -663,6 +673,38 @@
 
       .help-wrap {
         bottom: 8px !important;
+      }
+    }
+
+    html.ios-standalone .shell {
+      padding-top: env(safe-area-inset-top) !important;
+      padding-bottom: env(safe-area-inset-bottom) !important;
+    }
+
+    html.ios-standalone .panel {
+      min-height: calc(100svh - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+      min-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+      min-height: calc(100lvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+    }
+
+    html.ios-standalone .help-wrap {
+      bottom: calc(8px + env(safe-area-inset-bottom)) !important;
+    }
+
+    @media (display-mode: standalone), (display-mode: fullscreen) {
+      .shell {
+        padding-top: env(safe-area-inset-top) !important;
+        padding-bottom: env(safe-area-inset-bottom) !important;
+      }
+
+      .panel {
+        min-height: calc(100svh - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+        min-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+        min-height: calc(100lvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+      }
+
+      .help-wrap {
+        bottom: calc(8px + env(safe-area-inset-bottom)) !important;
       }
     }
   </style>
