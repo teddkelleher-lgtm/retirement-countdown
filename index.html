@@ -402,6 +402,29 @@
       gap: 7px;
     }
 
+    .metric-section {
+      margin-top: 10px;
+    }
+
+    .metric-section-title {
+      margin: 0 0 2px;
+      font-family: "Orbitron", "Sora", sans-serif;
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #d8ecff;
+      text-shadow: 0 0 14px rgba(118, 214, 255, 0.24);
+    }
+
+    .metric-section-note {
+      margin: 0;
+      color: rgba(220, 240, 255, 0.72);
+      font-size: 0.66rem;
+      line-height: 1.2;
+      letter-spacing: 0.02em;
+    }
+
     .metric {
       min-height: 74px;
       border-radius: 14px;
@@ -415,6 +438,22 @@
       justify-content: center;
       gap: 5px;
       box-shadow: inset 0 0 16px rgba(255, 184, 83, 0.16), 0 6px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .metric-completed {
+      background:
+        linear-gradient(rgba(25, 45, 72, 0.7), rgba(23, 56, 84, 0.74)) padding-box,
+        linear-gradient(135deg, rgba(126, 220, 255, 0.7), rgba(111, 172, 255, 0.52), rgba(154, 255, 203, 0.54), rgba(255, 208, 130, 0.42)) border-box;
+      box-shadow: inset 0 0 18px rgba(98, 205, 255, 0.16), 0 6px 12px rgba(0, 0, 0, 0.18);
+    }
+
+    .metric-completed .metric-name {
+      color: #d7f3ff;
+    }
+
+    .metric-completed .metric-value {
+      color: #f5fcff;
+      text-shadow: 0 0 14px rgba(132, 226, 255, 0.26);
     }
 
     .metric-name {
@@ -713,6 +752,45 @@
           <p class="metric-name">Seconds Left</p>
           <p class="metric-value" id="seconds">--</p>
         </article>
+      </section>
+
+      <section class="metric-section" aria-label="Completed countdown metrics">
+        <h2 class="metric-section-title">Career Time Completed</h2>
+        <p class="metric-section-note">Scroll for the elapsed side of the same countdown.</p>
+        <section class="grid" aria-label="Completed career metrics">
+          <article class="metric metric-completed">
+            <p class="metric-name">Years Completed</p>
+            <p class="metric-value" id="yearsCompleted">--</p>
+          </article>
+          <article class="metric metric-completed">
+            <p class="metric-name">Months Completed</p>
+            <p class="metric-value" id="monthsCompleted">--</p>
+          </article>
+          <article class="metric metric-completed">
+            <p class="metric-name">Weeks Completed</p>
+            <p class="metric-value" id="weeksCompleted">--</p>
+          </article>
+          <article class="metric metric-completed">
+            <p class="metric-name">Days Completed</p>
+            <p class="metric-value" id="daysCompleted">--</p>
+          </article>
+          <article class="metric metric-completed">
+            <p class="metric-name">Hours Completed</p>
+            <p class="metric-value" id="hoursCompleted">--</p>
+          </article>
+          <article class="metric metric-completed">
+            <p class="metric-name">Workday Hours Completed</p>
+            <p class="metric-value" id="workHoursCompleted">--</p>
+          </article>
+          <article class="metric metric-completed">
+            <p class="metric-name">Minutes Completed</p>
+            <p class="metric-value" id="minutesCompleted">--</p>
+          </article>
+          <article class="metric metric-completed">
+            <p class="metric-name">Seconds Completed</p>
+            <p class="metric-value" id="secondsCompleted">--</p>
+          </article>
+        </section>
       </section>
 
       <div class="event-stream" id="eventStream" aria-live="polite" aria-atomic="false"></div>
@@ -1208,11 +1286,13 @@
         helpBtn: document.getElementById("helpBtn"),
         helpTip: document.getElementById("footnoteTip"),
         eventStream: document.getElementById("eventStream"),
-        metrics: {}
+        metrics: {},
+        completedMetrics: {}
       };
 
       for (const def of metricDefs) {
         ui.metrics[def.key] = document.getElementById(def.key);
+        ui.completedMetrics[def.key] = document.getElementById(def.key + "Completed");
       }
 
       const displayCache = new Map();
@@ -1442,6 +1522,21 @@
           seconds: remainingMs / UNIT_MS.second,
           percentLeft: TOTAL_MS > 0 ? (remainingMs / TOTAL_MS) * 100 : 0,
           remainingMs
+        };
+      }
+
+      function computeCompletedValues(nowMs) {
+        const clampedNowMs = clamp(nowMs, START.getTime(), END_MS);
+        const elapsedMs = Math.max(0, clampedNowMs - START.getTime());
+        return {
+          years: elapsedMs / UNIT_MS.year,
+          months: elapsedMs / UNIT_MS.month,
+          weeks: elapsedMs / UNIT_MS.week,
+          days: elapsedMs / UNIT_MS.day,
+          hours: elapsedMs / UNIT_MS.hour,
+          workHours: computeRemainingWorkHours(START.getTime(), clampedNowMs),
+          minutes: elapsedMs / UNIT_MS.minute,
+          seconds: elapsedMs / UNIT_MS.second
         };
       }
 
@@ -2557,10 +2652,13 @@
       function render() {
         const nowMs = Date.now();
         const values = computeValues(nowMs);
+        const completedValues = computeCompletedValues(nowMs);
 
         for (const def of metricDefs) {
           const display = formatFixed(values[def.key], def.decimals);
           setText(ui.metrics[def.key], "metric-" + def.key, display);
+          const completedDisplay = formatFixed(completedValues[def.key], def.decimals);
+          setText(ui.completedMetrics[def.key], "metric-completed-" + def.key, completedDisplay);
         }
 
         const percentClamped = Math.max(0, Math.min(100, values.percentLeft));
